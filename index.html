@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一支小雨傘 - 歌詞同步播放器</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    boxShadow: {
+                        'glass-sm': '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+                        'glass-md': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 滾動條美化 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* 歌詞高亮特殊動畫 */
+        .lyric-line {
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .lyric-active {
+            transform: scale(1.08);
+            text-shadow: 0 0 15px currentColor;
+            font-weight: 700;
+        }
+
+        /* 毛玻璃主題背景漸變 */
+        .theme-blue {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+        }
+        .theme-gold {
+            background: linear-gradient(135deg, #1a0f00 0%, #2e1a00 50%, #4a3b10 100%);
+        }
+        .theme-green {
+            background: linear-gradient(135deg, #022c22 0%, #064e3b 50%, #022c22 100%);
+        }
+        .theme-rose {
+            background: linear-gradient(135deg, #180815 0%, #310f27 50%, #4c0519 100%);
+        }
+
+        /* 卡拉OK模式字體描邊 */
+        .text-stroke {
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body class="theme-blue text-slate-100 min-h-screen transition-all duration-1000 overflow-x-hidden relative font-sans selection:bg-indigo-500 selection:text-white">
+    
+    <!-- 雨滴 Canvas 動畫背景 -->
+    <canvas id="rainCanvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 opacity-60"></canvas>
+
+    <!-- 主體內容容器 -->
+    <div class="relative z-10 min-h-screen flex flex-col px-4 py-6 md:px-8 max-w-7xl mx-auto">
+        
+        <!-- 頂部導覽列 -->
+        <header class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 border-b border-white/10 pb-4 backdrop-blur-md bg-black/10 p-4 rounded-2xl">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 animate-pulse">
+                    <i class="fa-solid fa-umbrella text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-100">一支小雨傘</h1>
+                    <p class="text-xs text-slate-400">台語經典金曲 • 歌詞同步伴唱</p>
+                </div>
+            </div>
+            
+            <!-- 控制選項列 -->
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <!-- 主題選擇 -->
+                <div class="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-xs">
+                    <span class="text-slate-400 mr-1"><i class="fa-solid fa-palette"></i></span>
+                    <button onclick="changeTheme('blue')" class="w-4 h-4 rounded-full bg-indigo-600 border border-white/30 focus:outline-none" title="經典雨夜"></button>
+                    <button onclick="changeTheme('gold')" class="w-4 h-4 rounded-full bg-amber-600 border border-white/30 focus:outline-none" title="懷舊黑膠"></button>
+                    <button onclick="changeTheme('green')" class="w-4 h-4 rounded-full bg-emerald-600 border border-white/30 focus:outline-none" title="午夜森林"></button>
+                    <button onclick="changeTheme('rose')" class="w-4 h-4 rounded-full bg-rose-600 border border-white/30 focus:outline-none" title="浪漫櫻粉"></button>
+                </div>
+
+                <!-- 雨勢調節 -->
+                <button onclick="toggleRain()" id="rainToggleBtn" class="bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full text-xs transition duration-300 flex items-center gap-1">
+                    <i class="fa-solid fa-cloud-showers-heavy text-indigo-400"></i>
+                    <span>雨效: 開</span>
+                </button>
+
+                <!-- 說明按鈕 -->
+                <button onclick="toggleHelpModal(true)" class="bg-white/5 hover:bg-white/10 border border-white/10 w-8 h-8 rounded-full text-xs transition duration-300 flex items-center justify-center" title="操作說明">
+                    <i class="fa-solid fa-question text-slate-300"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 主體版面配置 (影音與歌詞) -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start flex-grow">
+            
+            <!-- 左側：影片播放器與自訂控制台 -->
+            <section class="lg:col-span-5 flex flex-col gap-6">
+                
+                <!-- 歌曲資訊卡 -->
+                <div class="bg-white/5 border border-white/10 p-5 rounded-3xl backdrop-blur-md shadow-glass-sm">
+                    <div class="flex gap-4">
+                        <!-- 虛擬唱片/封面 -->
+                        <div class="relative group w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
+                            <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                            <div class="relative bg-black rounded-2xl overflow-hidden w-full h-full border border-white/10 flex items-center justify-center">
+                                <img src="https://i.ytimg.com/vi/5_eXogZgr48/maxresdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=500&auto=format&fit=crop&q=60'" class="w-full h-full object-cover opacity-85" alt="一支小雨傘封面">
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <i class="fa-solid fa-compact-disc text-white/80 text-2xl md:text-3xl animate-[spin_8s_linear_infinite]" id="discSpinner"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col justify-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 w-max mb-1.5">
+                                台語經典 • 1982
+                            </span>
+                            <h2 class="text-xl font-bold tracking-tight">一支小雨傘</h2>
+                            <p class="text-sm text-slate-300 mt-1">原唱者：<span class="text-indigo-300 font-medium">洪榮宏</span></p>
+                            <p class="text-xs text-slate-400 mt-0.5">作詞：黃敏 ｜ 作曲：利根一郎</p>
+                        </div>
+                    </div>
+
+                    <!-- YouTube 嵌入框架區 -->
+                    <div class="mt-6 rounded-2xl overflow-hidden aspect-video bg-black/40 border border-white/10 relative shadow-inner">
+                        <!-- 為了使用 YouTube Player API，這裏設定容器 -->
+                        <div id="player" class="w-full h-full"></div>
+                        
+                        <!-- 遮罩/加載提示 -->
+                        <div id="playerLoader" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center gap-3 transition-opacity duration-500">
+                            <div class="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-400 rounded-full animate-spin"></div>
+                            <p class="text-xs text-slate-400">正在準備影音資源...</p>
+                        </div>
+                    </div>
+
+                    <!-- 貼心動態提示列：例如間奏、準備歌唱等 -->
+                    <div class="mt-4 flex items-center justify-between bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" id="statePulse"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" id="stateDot"></span>
+                            </span>
+                            <span class="text-xs text-slate-300 font-medium" id="statusText">尚未開始播放</span>
+                        </div>
+                        <div class="text-xs text-slate-400" id="durationText">00:00 / 03:37</div>
+                    </div>
+                </div>
+
+                <!-- 歌詞微調工具與調整面板 -->
+                <div class="bg-white/5 border border-white/10 p-5 rounded-3xl backdrop-blur-md shadow-glass-sm flex flex-col gap-4">
+                    <h3 class="text-sm font-semibold text-indigo-300 border-b border-white/5 pb-2"><i class="fa-solid fa-sliders mr-2"></i>伴唱設定控制</h3>
+                    
+                    <!-- 歌詞時間偏置微調 (Offset) -->
+                    <div class="flex items-center justify-between text-sm">
+                        <div class="flex flex-col">
+                            <span class="font-medium text-slate-200">歌詞同步微調</span>
+                            <span class="text-xs text-slate-400">若歌詞較慢或較快時調整</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="adjustOffset(-0.1)" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition" title="提前0.1秒">
+                                <i class="fa-solid fa-minus text-xs"></i>
+                            </button>
+                            <span id="offsetVal" class="text-sm font-bold font-mono text-indigo-300 bg-black/20 px-3 py-1 rounded-md border border-white/5 min-w-[70px] text-center">0.0s</span>
+                            <button onclick="adjustOffset(0.1)" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition" title="延後半0.1秒">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                            </button>
+                            <button onclick="resetOffset()" class="text-xs text-slate-400 hover:text-white underline ml-1">重設</button>
+                        </div>
+                    </div>
+
+                    <!-- 字型大小微調 -->
+                    <div class="flex items-center justify-between text-sm">
+                        <div class="flex flex-col">
+                            <span class="font-medium text-slate-200">歌詞字體大小</span>
+                            <span class="text-xs text-slate-400">更方便長輩或在大螢幕閱覽</span>
+                        </div>
+                        <div class="flex bg-black/20 p-1 rounded-lg border border-white/5 gap-1">
+                            <button onclick="setFontSize('sm')" id="font-sm" class="px-2.5 py-1 text-xs rounded transition-all">標準</button>
+                            <button onclick="setFontSize('md')" id="font-md" class="px-2.5 py-1 text-xs rounded bg-indigo-600 font-bold transition-all">中等</button>
+                            <button onclick="setFontSize('lg')" id="font-lg" class="px-2.5 py-1 text-xs rounded transition-all">放大</button>
+                            <button onclick="setFontSize('xl')" id="font-xl" class="px-2.5 py-1 text-xs rounded transition-all">超大</button>
+                        </div>
+                    </div>
+
+                    <!-- 卡拉OK全螢幕模式切換 -->
+                    <div class="flex items-center justify-between text-sm">
+                        <div class="flex flex-col">
+                            <span class="font-medium text-slate-200">焦點卡拉OK模式</span>
+                            <span class="text-xs text-slate-400">切換為全螢幕大字顯示與大字幕伴唱</span>
+                        </div>
+                        <button onclick="toggleKaraokeMode(true)" class="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg shadow-indigo-600/20">
+                            <i class="fa-solid fa-expand"></i>
+                            <span>切換至大字伴唱</span>
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- 右側：同步歌詞滾動區 -->
+            <section class="lg:col-span-7 flex flex-col gap-4 h-full">
+                
+                <!-- 搜尋與統計欄 -->
+                <div class="bg-white/5 border border-white/10 px-5 py-3 rounded-2xl backdrop-blur-md flex items-center justify-between gap-4 shadow-glass-sm">
+                    <div class="relative w-full max-w-xs">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm"></i>
+                        </span>
+                        <input type="text" id="lyricSearch" oninput="searchLyrics()" placeholder="搜尋歌詞內容..." class="w-full bg-black/20 border border-white/10 rounded-xl pl-9 pr-4 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-slate-200 placeholder:text-slate-500">
+                    </div>
+                    
+                    <div class="text-xs text-slate-400 flex items-center gap-2">
+                        <span class="bg-white/5 border border-white/5 px-2.5 py-1 rounded-lg">共 <span id="lyricCount" class="font-bold text-indigo-300">0</span> 句</span>
+                        <span id="clickTip" class="hidden sm:inline bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-indigo-300"><i class="fa-solid fa-mouse-pointer mr-1"></i>點擊歌詞可跳轉時間</span>
+                    </div>
+                </div>
+
+                <!-- 歌詞顯示本體區 -->
+                <div class="relative rounded-3xl overflow-hidden border border-white/10 bg-black/25 backdrop-blur-md shadow-glass-md flex-grow h-[480px] lg:h-[580px]">
+                    
+                    <!-- 漸變遮罩 (頂部與底部) -->
+                    <div class="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-slate-950/40 to-transparent pointer-events-none z-20"></div>
+                    <div class="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-slate-950/40 to-transparent pointer-events-none z-20"></div>
+
+                    <!-- 歌詞清單滾動區 -->
+                    <div id="lyricsContainer" class="w-full h-full overflow-y-auto px-6 py-24 flex flex-col gap-4 scroll-smooth">
+                        <!-- 歌詞行會由此處動態載入 -->
+                    </div>
+
+                    <!-- 無搜尋結果提示 -->
+                    <div id="noResults" class="hidden absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-black/40 backdrop-blur-sm z-30">
+                        <i class="fa-solid fa-face-frown text-3xl mb-2 text-slate-500"></i>
+                        <p class="text-sm">沒有符合搜尋條件的歌詞</p>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+
+        <!-- 頁尾 -->
+        <footer class="mt-12 border-t border-white/5 pt-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>© 2026 經典金曲 KTV 伴唱網頁程式. 本網頁僅供學術與技術展示，影片與音樂版權歸滾石唱片所有。</p>
+            <p>Made with <i class="fa-solid fa-heart text-rose-500 animate-pulse"></i> for Music Lovers</p>
+        </footer>
+    </div>
+
+    <!-- 彈出視窗 1：全螢幕卡拉OK大字體伴唱模式 -->
+    <div id="karaokeModal" class="fixed inset-0 bg-slate-950 z-50 flex-col justify-between p-8 hidden overflow-hidden select-none">
+        <!-- 粒子雨背景（同主頁但更亮） -->
+        <canvas id="karaokeRainCanvas" class="absolute inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+        <!-- 頂部列：歌名與退出 -->
+        <div class="relative z-10 flex justify-between items-center border-b border-white/5 pb-4">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-microphone text-rose-500 text-2xl animate-bounce"></i>
+                <div>
+                    <h2 class="text-lg font-black text-white tracking-wide">一支小雨傘 <span class="text-xs font-normal text-slate-400 ml-2">原唱：洪榮宏</span></h2>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- 時間 -->
+                <span id="karaokeTimeText" class="text-sm font-mono text-slate-400 bg-white/5 px-3 py-1 rounded-lg border border-white/5">00:00 / 03:37</span>
+                <!-- 退出按鈕 -->
+                <button onclick="toggleKaraokeMode(false)" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 hover:text-rose-400 border border-white/10 flex items-center justify-center transition-all duration-300">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 中部：巨型歌詞焦點看板 -->
+        <div class="relative z-10 flex-grow flex flex-col justify-center items-center px-4 py-8 text-center gap-8">
+            
+            <!-- 上一句 (暗色) -->
+            <div id="karaokePrevLine" class="text-2xl md:text-3xl lg:text-4xl text-slate-500/70 font-semibold max-w-4xl transition-all duration-500 h-12">
+                --
+            </div>
+
+            <!-- 當前句 (高亮巨型) -->
+            <div class="relative py-4 px-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl max-w-5xl min-h-[140px] flex flex-col justify-center items-center">
+                <!-- 伴奏進度小指示 -->
+                <div class="absolute top-0 inset-x-0 h-1 bg-white/5 overflow-hidden rounded-t-3xl">
+                    <div id="karaokeLineProgress" class="h-full bg-gradient-to-r from-indigo-500 to-rose-500 w-0 transition-all duration-300"></div>
+                </div>
+
+                <div id="karaokeActiveLine" class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-wider leading-relaxed text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-pink-200 drop-shadow-lg drop-shadow-indigo-500/20">
+                    一支小雨傘
+                </div>
+            </div>
+
+            <!-- 下一句 (暗色) -->
+            <div id="karaokeNextLine" class="text-2xl md:text-3xl lg:text-4xl text-slate-500/70 font-semibold max-w-4xl transition-all duration-500 h-12">
+                咱二人 做陣攑著一支小雨傘
+            </div>
+        </div>
+
+        <!-- 底部：大字伴唱播放控制、指示燈 -->
+        <div class="relative z-10 border-t border-white/5 pt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- 音樂提示/間奏燈 -->
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400">唱詞提示：</span>
+                <div class="flex gap-1.5" id="karaokeSignalDots">
+                    <span class="w-3 h-3 rounded-full bg-slate-700 transition" id="singLight1"></span>
+                    <span class="w-3 h-3 rounded-full bg-slate-700 transition" id="singLight2"></span>
+                    <span class="w-3 h-3 rounded-full bg-slate-700 transition" id="singLight3"></span>
+                </div>
+                <span id="karaokeStatusText" class="text-xs font-semibold text-indigo-300 ml-1">準備中...</span>
+            </div>
+
+            <!-- 簡單控制 -->
+            <div class="flex items-center gap-3">
+                <button onclick="controlPlayer('play')" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-play"></i> 播放
+                </button>
+                <button onclick="controlPlayer('pause')" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-pause"></i> 暫停
+                </button>
+                <button onclick="adjustOffset(-0.1)" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-slate-300" title="提前0.1秒">
+                    <i class="fa-solid fa-backward"></i>
+                </button>
+                <button onclick="adjustOffset(0.1)" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-slate-300" title="延後0.1秒">
+                    <i class="fa-solid fa-forward"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 彈出視窗 2：操作說明 Modal -->
+    <div id="helpModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-white/10 max-w-md w-full rounded-3xl p-6 shadow-2xl relative">
+            <button onclick="toggleHelpModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-white/5 pb-2">
+                <i class="fa-solid fa-circle-info text-indigo-400"></i>
+                操作說明與特色
+            </h3>
+            <ul class="text-sm text-slate-300 space-y-3.5 list-disc pl-4">
+                <li><strong class="text-indigo-300">智慧歌詞滾動：</strong>播放歌曲時，右側歌詞會根據時間點同步高亮，並自動保持置中滾動。</li>
+                <li><strong class="text-indigo-300">歌詞隨點隨播：</strong>您可以直接點擊右側的任何一句歌詞，音樂便會自動快轉至該句開頭，方便練習或重聽！</li>
+                <li><strong class="text-indigo-300">延遲修正微調：</strong>若您覺得音效與歌詞有一些時間落差，可使用左下角的微調按鈕進行 0.1 秒單位的加減修正。</li>
+                <li><strong class="text-indigo-300">大字體模式：</strong>點擊「焦點卡拉OK模式」，可切換至全螢幕純享卡拉OK大字體介面。</li>
+                <li><strong class="text-indigo-300">主題切換與雨滴背景：</strong>右上角可自由切換四種色系主題，雨夜模式下還有自動落下的 Canvas 細雨粒子特效。</li>
+            </ul>
+            <button onclick="toggleHelpModal(false)" class="mt-6 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm transition">
+                我知道了，開始伴唱！
+            </button>
+        </div>
+    </div>
+
+    <!-- YouTube IFrame Player API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        // === 歌詞資料庫（精確時間點，單位：秒） ===
+        const rawLyrics = [
+            { time: 0.0, text: "一支小雨傘" },
+            { time: 4.0, text: "原唱者：洪榮宏 • 詞：黃敏 • 曲：利根一郎" },
+            { time: 12.0, text: "🎵 (間奏準備中...)" },
+            { time: 26.0, text: "咱二人　做陣攑著一支小雨傘" },
+            { time: 35.0, text: "雨越大　我來照顧你　你來照顧我" },
+            { time: 45.0, text: "雖然雙人行相偎　遇著風雨這呢大" },
+            { time: 49.0, text: "坎坷小路又歹行　咱著小心行" },
+            { time: 54.0, text: "你甲我　做陣攑著一支小雨傘" },
+            { time: 63.0, text: "風愈大　渥甲淡糊糊心情也快活" },
+            { time: 71.0, text: "🎵 (精彩間奏 - 吹口哨)" },
+            { time: 81.0, text: "咱二人　做陣攑著一支小雨傘" },
+            { time: 90.0, text: "雨愈大　我來照顧你　你來照顧我" },
+            { time: 99.0, text: "你我雙人同心肝　不驚風雨這呢大" },
+            { time: 104.0, text: "黑暗小路真歹行　咱著小心行" },
+            { time: 108.0, text: "你甲我　做陣攑著一支小雨傘" },
+            { time: 117.0, text: "風愈大　渥甲淡糊糊心情也快活" },
+            { time: 126.0, text: "🎵 (精彩間奏 - 準備迎向副歌)" },
+            { time: 145.0, text: "咱二人　做陣攑著一支小雨傘" },
+            { time: 154.0, text: "雨愈大　我來照顧你　你來照顧我" },
+            { time: 163.0, text: "你我雙人同心肝　不驚風雨這呢大" },
+            { time: 168.0, text: "黑暗小路真歹行　咱著小心行" },
+            { time: 172.0, text: "你甲我　做陣攑著一支小雨傘" },
+            { time: 181.0, text: "風愈大　渥甲淡糊糊心情也快活" },
+            { time: 191.0, text: "心情也快活……" },
+            { time: 201.0, text: "🎵 (歌曲尾奏結束)" }
+        ];
+
+        // 全域變數定義
+        let player; // YouTube Player 物件
+        let updateInterval; // 計時更新
+        let currentActiveIndex = -1; // 當前唱詞索引
+        let timeOffset = 0.0; // 歌詞偏置校正
+        let currentFontSize = 'md'; // 字型大小：sm, md, lg, xl
+        let isRainActive = true; // 是否開啟雨滴背景
+        let isKaraokeMode = false; // 是否卡拉OK模式
+
+        // === 初始化頁面與歌詞 ===
+        document.addEventListener("DOMContentLoaded", () => {
+            initLyrics();
+            initRainEffect("rainCanvas");
+            initRainEffect("karaokeRainCanvas");
+        });
+
+        // 動態生成歌詞 DOM 節點
+        function initLyrics() {
+            const container = document.getElementById("lyricsContainer");
+            container.innerHTML = "";
+            
+            rawLyrics.forEach((lyric, index) => {
+                const lineDiv = document.createElement("div");
+                lineDiv.id = `lyric-line-${index}`;
+                lineDiv.className = `lyric-line px-4 py-3 rounded-xl cursor-pointer text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-3 transition-all duration-300 group`;
+                lineDiv.setAttribute("onclick", `jumpToTime(${lyric.time})`);
+                
+                // 時間標籤
+                const timeSpan = document.createElement("span");
+                timeSpan.className = "text-xs font-mono text-slate-500 group-hover:text-indigo-400 bg-black/20 group-hover:bg-indigo-500/10 border border-white/5 group-hover:border-indigo-500/20 px-2 py-0.5 rounded";
+                timeSpan.innerText = formatTime(lyric.time);
+                
+                // 歌詞文字
+                const textSpan = document.createElement("span");
+                textSpan.id = `lyric-text-${index}`;
+                textSpan.className = "text-base font-medium tracking-wide flex-grow select-none lyric-txt";
+                textSpan.innerText = lyric.text;
+
+                // 間奏特殊標示色
+                if (lyric.text.includes("🎵")) {
+                    textSpan.classList.add("text-indigo-400/80", "italic");
+                }
+
+                // 播放小 icon
+                const playIcon = document.createElement("i");
+                playIcon.className = "fa-solid fa-play text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300";
+
+                lineDiv.appendChild(timeSpan);
+                lineDiv.appendChild(textSpan);
+                lineDiv.appendChild(playIcon);
+                container.appendChild(lineDiv);
+            });
+
+            document.getElementById("lyricCount").innerText = rawLyrics.length;
+            applyFontSize();
+        }
+
+        // === YouTube IFrame API 載入 ===
+        // 該函數由 YouTube IFrame API 自動回呼
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                videoId: '5_eXogZgr48', // 影片 ID
+                playerVars: {
+                    'playsinline': 1,
+                    'controls': 1,
+                    'rel': 0,
+                    'modestbranding': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        // 播放器就緒
+        function onPlayerReady(event) {
+            document.getElementById("playerLoader").classList.add("opacity-0");
+            setTimeout(() => {
+                document.getElementById("playerLoader").classList.add("hidden");
+            }, 500);
+            updateDuration();
+        }
+
+        // 播放器狀態改變（播放中、暫停等）
+        function onPlayerStateChange(event) {
+            const discSpinner = document.getElementById("discSpinner");
+            const statePulse = document.getElementById("statePulse");
+            const stateDot = document.getElementById("stateDot");
+            const statusText = document.getElementById("statusText");
+
+            if (event.data == YT.PlayerState.PLAYING) {
+                // 開始旋轉唱片與啟動更新排程
+                discSpinner.classList.add("animate-[spin_8s_linear_infinite]");
+                stateDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
+                statePulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+                statusText.innerText = "音樂播放中";
+                
+                // 啟動更新排程
+                startSyncTimer();
+            } else {
+                // 暫停唱片與清除排程
+                discSpinner.classList.remove("animate-[spin_8s_linear_infinite]");
+                statePulse.className = "hidden";
+                
+                if (event.data == YT.PlayerState.PAUSED) {
+                    stateDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
+                    statusText.innerText = "已暫停播放";
+                } else if (event.data == YT.PlayerState.ENDED) {
+                    stateDot.className = "relative inline-flex rounded-full h-2 w-2 bg-slate-500";
+                    statusText.innerText = "播放完畢";
+                } else {
+                    stateDot.className = "relative inline-flex rounded-full h-2 w-2 bg-slate-500";
+                    statusText.innerText = "待命狀態";
+                }
+                
+                stopSyncTimer();
+            }
+        }
+
+        // === 同步滾動核心邏輯 ===
+        function startSyncTimer() {
+            if (updateInterval) clearInterval(updateInterval);
+            
+            // 每 50ms 更新一次，提供更滑順、精確的高亮
+            updateInterval = setInterval(() => {
+                if (player && player.getCurrentTime) {
+                    const currentTime = player.getCurrentTime();
+                    syncLyrics(currentTime);
+                    updateDuration(currentTime);
+                }
+            }, 50);
+        }
+
+        function stopSyncTimer() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+        }
+
+        // 歌詞滾動高亮核心演算法
+        function syncLyrics(time) {
+            // 加入微調偏置秒數
+            const adjustedTime = time + timeOffset;
+            let activeIndex = -1;
+
+            // 尋找當前應該高亮的歌詞行
+            for (let i = 0; i < rawLyrics.length; i++) {
+                if (adjustedTime >= rawLyrics[i].time) {
+                    activeIndex = i;
+                } else {
+                    break;
+                }
+            }
+
+            if (activeIndex !== -1 && activeIndex !== currentActiveIndex) {
+                // 清除前一行的狀態
+                if (currentActiveIndex !== -1) {
+                    const prevRow = document.getElementById(`lyric-line-${currentActiveIndex}`);
+                    if (prevRow) {
+                        prevRow.classList.remove("lyric-active", "bg-indigo-500/10", "border-indigo-500/20", "text-indigo-200");
+                        prevRow.classList.add("text-slate-300");
+                        document.getElementById(`lyric-text-${currentActiveIndex}`).classList.remove("text-indigo-200", "scale-105");
+                    }
+                }
+
+                // 設定當前行的狀態
+                const activeRow = document.getElementById(`lyric-line-${activeIndex}`);
+                if (activeRow) {
+                    activeRow.classList.add("lyric-active", "bg-indigo-500/10", "border-indigo-500/20");
+                    activeRow.classList.remove("text-slate-300");
+                    
+                    const textEl = document.getElementById(`lyric-text-${activeIndex}`);
+                    textEl.classList.add("text-indigo-200", "scale-105");
+
+                    // 平滑滾動讓當前行置中
+                    const container = document.getElementById("lyricsContainer");
+                    const offsetTop = activeRow.offsetTop;
+                    const containerHeight = container.clientHeight;
+                    container.scrollTop = offsetTop - containerHeight / 2 + activeRow.clientHeight / 2;
+                }
+
+                currentActiveIndex = activeIndex;
+
+                // 更新大字卡拉OK模式內容
+                updateKaraokePanel(activeIndex);
+            }
+
+            // 更新卡拉OK唱詞指示燈、唱詞內度進度條
+            if (isKaraokeMode && activeIndex !== -1) {
+                updateKaraokeUIFeedback(adjustedTime, activeIndex);
+            }
+        }
+
+        // === 歌詞點播與播放控制 ===
+        function jumpToTime(time) {
+            if (player && player.seekTo) {
+                player.seekTo(time, true);
+                
+                // 如果目前是暫停狀態，自動播放
+                if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                    player.playVideo();
+                }
+            }
+        }
+
+        function controlPlayer(action) {
+            if (!player) return;
+            if (action === 'play') player.playVideo();
+            if (action === 'pause') player.pauseVideo();
+        }
+
+        // 外部微調偏置
+        function adjustOffset(amount) {
+            timeOffset = parseFloat((timeOffset + amount).toFixed(1));
+            document.getElementById("offsetVal").innerText = (timeOffset > 0 ? "+" : "") + timeOffset.toFixed(1) + "s";
+            
+            // 強制歌詞重新比對時間
+            if (player) syncLyrics(player.getCurrentTime());
+        }
+
+        function resetOffset() {
+            timeOffset = 0.0;
+            document.getElementById("offsetVal").innerText = "0.0s";
+            if (player) syncLyrics(player.getCurrentTime());
+        }
+
+        // === 全螢幕卡拉OK大字體伴唱模式 ===
+        function toggleKaraokeMode(enable) {
+            isKaraokeMode = enable;
+            const modal = document.getElementById("karaokeModal");
+            
+            if (enable) {
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+                if (currentActiveIndex !== -1) {
+                    updateKaraokePanel(currentActiveIndex);
+                }
+            } else {
+                modal.classList.remove("flex");
+                modal.classList.add("hidden");
+            }
+        }
+
+        // 更新卡拉OK大字體面版內容
+        function updateKaraokePanel(index) {
+            if (!isKaraokeMode) return;
+
+            const prevLine = document.getElementById("karaokePrevLine");
+            const activeLine = document.getElementById("karaokeActiveLine");
+            const nextLine = document.getElementById("karaokeNextLine");
+
+            // 取得上一句、當前句、下一句歌詞
+            const prevText = index > 0 ? rawLyrics[index - 1].text : "--";
+            const activeText = rawLyrics[index].text;
+            const nextText = index < rawLyrics.length - 1 ? rawLyrics[index + 1].text : "--";
+
+            // 判斷是否為間奏
+            const isInstrumental = activeText.includes("🎵");
+
+            prevLine.innerText = prevText;
+            activeLine.innerText = activeText;
+            nextLine.innerText = nextText;
+
+            // 特殊樣式：若為間奏/吹口哨
+            if (isInstrumental) {
+                activeLine.className = "text-3xl md:text-4xl lg:text-5xl font-bold tracking-wider text-indigo-400 drop-shadow animate-pulse italic";
+                document.getElementById("karaokeStatusText").innerText = "音樂間奏 吹口哨啦 🎵";
+                document.getElementById("karaokeStatusText").className = "text-xs font-semibold text-indigo-400 ml-1";
+            } else {
+                activeLine.className = "text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-wider leading-relaxed text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-pink-200 drop-shadow-lg drop-shadow-indigo-500/20";
+                document.getElementById("karaokeStatusText").innerText = "伴唱中 請唱歌 🎤";
+                document.getElementById("karaokeStatusText").className = "text-xs font-semibold text-rose-400 ml-1";
+            }
+        }
+
+        // 更新卡拉OK模式的進度條與提示燈
+        function updateKaraokeUIFeedback(adjustedTime, index) {
+            const currentLine = rawLyrics[index];
+            const nextLine = index < rawLyrics.length - 1 ? rawLyrics[index + 1] : null;
+
+            if (nextLine) {
+                // 計算當前句到下一句的時間進度 (百分比)
+                const lineDuration = nextLine.time - currentLine.time;
+                const lineElapsed = adjustedTime - currentLine.time;
+                const progressPercent = Math.min(Math.max((lineElapsed / lineDuration) * 100, 0), 100);
+
+                // 更新當前行上方的彩色進度條
+                document.getElementById("karaokeLineProgress").style.width = `${progressPercent}%`;
+
+                // 靠近下一句的前 3 秒，閃爍黃綠燈倒數提示
+                const remainingTime = nextLine.time - adjustedTime;
+                const l1 = document.getElementById("singLight1");
+                const l2 = document.getElementById("singLight2");
+                const l3 = document.getElementById("singLight3");
+
+                if (remainingTime > 0 && remainingTime <= 3) {
+                    if (remainingTime <= 1) {
+                        l1.className = "w-3 h-3 rounded-full bg-rose-500 animate-ping";
+                        l2.className = "w-3 h-3 rounded-full bg-rose-500 animate-ping";
+                        l3.className = "w-3 h-3 rounded-full bg-rose-500 animate-ping";
+                    } else if (remainingTime <= 2) {
+                        l1.className = "w-3 h-3 rounded-full bg-amber-500";
+                        l2.className = "w-3 h-3 rounded-full bg-amber-500";
+                        l3.className = "w-3 h-3 rounded-full bg-slate-700";
+                    } else {
+                        l1.className = "w-3 h-3 rounded-full bg-emerald-500";
+                        l2.className = "w-3 h-3 rounded-full bg-slate-700";
+                        l3.className = "w-3 h-3 rounded-full bg-slate-700";
+                    }
+                } else {
+                    // 一般唱詞中狀態
+                    l1.className = "w-3 h-3 rounded-full bg-indigo-500";
+                    l2.className = "w-3 h-3 rounded-full bg-indigo-500";
+                    l3.className = "w-3 h-3 rounded-full bg-indigo-500";
+                }
+            } else {
+                document.getElementById("karaokeLineProgress").style.width = "100%";
+            }
+        }
+
+        // === 搜尋歌詞 ===
+        function searchLyrics() {
+            const query = document.getElementById("lyricSearch").value.trim().toLowerCase();
+            const lines = document.getElementsByClassName("lyric-line");
+            let hasMatches = false;
+            let matchCount = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const textEl = document.getElementById(`lyric-text-${i}`);
+                const lyricText = textEl.innerText.toLowerCase();
+
+                if (lyricText.includes(query)) {
+                    lines[i].classList.remove("hidden");
+                    hasMatches = true;
+                    matchCount++;
+
+                    // 關鍵字黃色高亮標記
+                    if (query !== "") {
+                        const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+                        const originalText = rawLyrics[i].text;
+                        textEl.innerHTML = originalText.replace(regex, `<mark class="bg-amber-400 text-slate-950 font-bold px-1 rounded">$1</mark>`);
+                    } else {
+                        textEl.innerHTML = rawLyrics[i].text;
+                    }
+                } else {
+                    lines[i].classList.add("hidden");
+                }
+            }
+
+            // 更新比對出的行數
+            document.getElementById("lyricCount").innerText = matchCount;
+
+            // 無結果提示處置
+            const noResults = document.getElementById("noResults");
+            if (!hasMatches && query !== "") {
+                noResults.classList.remove("hidden");
+            } else {
+                noResults.classList.add("hidden");
+            }
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        // === 播放輔助元件 ===
+        function updateDuration(currentSecs = 0) {
+            let durationSecs = 217; // 一支小雨傘約 217 秒
+            if (player && player.getDuration) {
+                const fetchedDuration = player.getDuration();
+                if (fetchedDuration > 0) durationSecs = fetchedDuration;
+            }
+
+            const currentStr = formatTime(currentSecs);
+            const durationStr = formatTime(durationSecs);
+            const text = `${currentStr} / ${durationStr}`;
+            
+            document.getElementById("durationText").innerText = text;
+            if (isKaraokeMode) {
+                document.getElementById("karaokeTimeText").innerText = text;
+            }
+        }
+
+        // 時間格式化 (00:00)
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 字體大小控制
+        function setFontSize(size) {
+            currentFontSize = size;
+            
+            // 清除選取背景
+            ['sm', 'md', 'lg', 'xl'].forEach(s => {
+                const btn = document.getElementById(`font-${s}`);
+                btn.className = "px-2.5 py-1 text-xs rounded transition-all text-slate-400 hover:text-white";
+            });
+
+            // 高亮選中按鈕
+            const activeBtn = document.getElementById(`font-${size}`);
+            activeBtn.className = "px-2.5 py-1 text-xs rounded bg-indigo-600 font-bold transition-all text-white";
+
+            applyFontSize();
+        }
+
+        function applyFontSize() {
+            const txtElements = document.getElementsByClassName("lyric-txt");
+            for (let i = 0; i < txtElements.length; i++) {
+                txtElements[i].className = "font-medium tracking-wide flex-grow select-none lyric-txt";
+                if (currentFontSize === 'sm') txtElements[i].classList.add("text-sm");
+                if (currentFontSize === 'md') txtElements[i].classList.add("text-base");
+                if (currentFontSize === 'lg') txtElements[i].classList.add("text-lg");
+                if (currentFontSize === 'xl') txtElements[i].classList.add("text-2xl");
+            }
+        }
+
+        // 主題切換
+        function changeTheme(themeName) {
+            const body = document.body;
+            body.className = "text-slate-100 min-h-screen transition-all duration-1000 overflow-x-hidden relative font-sans selection:bg-indigo-500 selection:text-white";
+            body.classList.add(`theme-${themeName}`);
+        }
+
+        // 操作說明 Modal 開關
+        function toggleHelpModal(show) {
+            const modal = document.getElementById("helpModal");
+            if (show) modal.classList.remove("hidden");
+            else modal.classList.add("hidden");
+        }
+
+        // === 動態雨滴 Canvas 效果實現 ===
+        let activeRainAnimations = [];
+
+        function initRainEffect(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            let animationFrameId;
+
+            // 響應畫布縮放
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // 雨滴粒子物件陣列
+            const particles = [];
+            const maxParticles = 120;
+
+            class RainDrop {
+                constructor() {
+                    this.reset();
+                }
+
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * -canvas.height;
+                    this.length = Math.random() * 20 + 10;
+                    this.speed = Math.random() * 15 + 10;
+                    this.opacity = Math.random() * 0.3 + 0.1;
+                    this.weight = Math.random() * 1.5 + 0.5;
+                }
+
+                update() {
+                    this.y += this.speed;
+                    this.x += 1; // 隨風稍微向右下飄斜
+
+                    if (this.y > canvas.height) {
+                        this.reset();
+                    }
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(156, 163, 175, ${this.opacity})`;
+                    ctx.lineWidth = this.weight;
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x + 1.5, this.y + this.length);
+                    ctx.stroke();
+                }
+            }
+
+            // 初始化生成粒子
+            for (let i = 0; i < maxParticles; i++) {
+                particles.push(new RainDrop());
+            }
+
+            // 動態繪製與物理循環
+            function animate() {
+                if (!isRainActive) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    animationFrameId = requestAnimationFrame(animate);
+                    return;
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+
+                animationFrameId = requestAnimationFrame(animate);
+            }
+
+            animate();
+            activeRainAnimations.push({ id: canvasId, frameId: animationFrameId });
+        }
+
+        // 雨效開關
+        function toggleRain() {
+            isRainActive = !isRainActive;
+            const btn = document.getElementById("rainToggleBtn");
+            const canvas1 = document.getElementById("rainCanvas");
+            const canvas2 = document.getElementById("karaokeRainCanvas");
+
+            if (isRainActive) {
+                btn.innerHTML = `<i class="fa-solid fa-cloud-showers-heavy text-indigo-400"></i> <span>雨效: 開</span>`;
+                canvas1.style.display = "block";
+                canvas2.style.display = "block";
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-cloud text-slate-500"></i> <span class="text-slate-400">雨效: 關</span>`;
+                canvas1.style.display = "none";
+                canvas2.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
