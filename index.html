@@ -69,6 +69,15 @@
             background: linear-gradient(135deg, #180815 0%, #310f27 50%, #4c0519 100%);
         }
 
+        /* 問答卡片翻轉小動畫 */
+        .quiz-pop {
+            animation: quizPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes quizPop {
+            0% { transform: scale(0.92); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         /* === 專為手機打橫/矮螢幕 (Landscape) 設計的極限優化樣式 === */
         @media (max-height: 550px) {
             #karaokeModal {
@@ -154,6 +163,12 @@
                 <button onclick="toggleRain()" id="rainToggleBtn" class="bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full text-xs transition duration-300 flex items-center gap-1">
                     <i class="fa-solid fa-cloud-showers-heavy text-indigo-400"></i>
                     <span>雨效: 開</span>
+                </button>
+
+                <!-- 故事與問答按鈕 -->
+                <button onclick="scrollToStory()" class="bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-200 px-3 py-1.5 rounded-full text-xs transition duration-300 flex items-center gap-1">
+                    <i class="fa-solid fa-book-open text-indigo-300"></i>
+                    <span>故事・趣事・問答</span>
                 </button>
 
                 <!-- 說明按鈕 -->
@@ -308,22 +323,136 @@
             </section>
         </main>
 
+        <!-- ============================================================= -->
+        <!-- 新增區塊：歌曲故事 × 趣聞 × 互動問答 -->
+        <!-- ============================================================= -->
+        <section id="storySection" class="mt-14 flex flex-col gap-8 scroll-mt-8">
+
+            <!-- 區塊標題 -->
+            <div class="text-center">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                    <i class="fa-solid fa-feather-pointed"></i> 雨傘下的故事
+                </span>
+                <h2 class="text-2xl md:text-3xl font-black mt-3 bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-pink-200">
+                    這首歌，藏著哪些故事？
+                </h2>
+                <p class="text-sm text-slate-400 mt-2">一首唱了四十多年的台語金曲，背後是父子、是日本、也是一整個時代</p>
+            </div>
+
+            <!-- 故事與趣事：雙欄卡片 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- 左卡：歌曲身世 -->
+                <div class="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md shadow-glass-sm">
+                    <h3 class="text-lg font-bold text-indigo-200 flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-record-vinyl"></i> 歌曲的身世
+                    </h3>
+                    <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                        <p>
+                            《一支小雨傘》其實是一首「跨海而來」的旋律。它的曲調源自日本歌手<span class="text-indigo-300 font-semibold">橋幸夫</span>在 1966 年發行的〈雨の中の二人〉（雨中的兩人），作曲者正是<span class="text-indigo-300 font-semibold">利根一郎</span>。
+                        </p>
+                        <p>
+                            後來由台灣詞人<span class="text-indigo-300 font-semibold">黃敏</span>重新填上台語歌詞，把日文原曲那份「雨中相依」的情意，化成更貼近台灣人生活的畫面——兩人撐著一支小雨傘，雨越大，越是互相照顧。
+                        </p>
+                        <p>
+                            1982 年，這首歌收錄在洪榮宏的專輯《行船人的愛・一支小雨傘》（光美唱片）中正式發行，從此傳唱全台，成為婚宴、KTV、廟口晚會永遠的點唱經典。
+                        </p>
+                        <div class="bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-slate-400">
+                            <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>
+                            小知識：那段令人印象深刻的「吹口哨」間奏，正是這首歌最有記憶點的招牌橋段之一。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右卡：原唱洪榮宏 -->
+                <div class="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md shadow-glass-sm">
+                    <h3 class="text-lg font-bold text-pink-200 flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-microphone-lines"></i> 原唱：洪榮宏的故事
+                    </h3>
+                    <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                        <p>
+                            洪榮宏出身台灣最傳奇的音樂世家——他是「寶島歌王」<span class="text-pink-300 font-semibold">洪一峰</span>的長子。父親是〈淡水暮色〉〈舊情綿綿〉〈思慕的人〉的創作者，弟弟洪敬堯、洪榮良也都在樂壇與藝術圈發光。
+                        </p>
+                        <p>
+                            他從 <span class="text-pink-300 font-semibold">5 歲</span>就跟著父親登台、<span class="text-pink-300 font-semibold">10 歲</span>灌錄第一張唱片《孤兒淚》、<span class="text-pink-300 font-semibold">13 歲</span>就被送到日本學唱歌。一直到 <span class="text-pink-300 font-semibold">19 歲</span>，靠著一首《一支小雨傘》紅遍全台，正式奠定他的歌壇地位。
+                        </p>
+                        <p>
+                            他渾厚又帶磁性的嗓音，被譽為「開創台語歌曲優質化的先河」，是 1980 年代台語歌走向精緻化的重要推手，曾多次拿下金曲獎肯定。
+                        </p>
+                        <div class="bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-slate-400">
+                            <i class="fa-solid fa-face-grin-squint text-amber-400 mr-1"></i>
+                            趣聞：洪榮宏受訪曾笑說，父親洪一峰對他的訓練嚴得像「軍事教育」——連雙眼皮不夠深，都被爸爸用「蛋白」土法把眼皮黏出摺痕，久了竟然真的定型！
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 趣味冷知識橫幅 -->
+            <div class="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-white/10 rounded-3xl p-6 backdrop-blur-md">
+                <h3 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> 三個你可能不知道的小趣事
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
+                        <div class="text-2xl mb-2">🇯🇵➡️🇹🇼</div>
+                        <p class="text-slate-300">很多人以為它是「純台灣味」老歌，其實旋律是道地的日本演歌改編，是那個年代台日音樂交流的縮影。</p>
+                    </div>
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
+                        <div class="text-2xl mb-2">🎤</div>
+                        <p class="text-slate-300">這首歌是無數人的「人生第一首台語對唱歌」，男女合唱版本傳唱度極高，KTV 點播榜上的常勝軍。</p>
+                    </div>
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
+                        <div class="text-2xl mb-2">👨‍👦</div>
+                        <p class="text-slate-300">洪家是不折不扣的「音樂家族」：父親洪一峰、長子洪榮宏、次子洪敬堯、三子洪榮良，三代人撐起台語歌謠一片天。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 互動問答區 -->
+            <div class="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md shadow-glass-sm">
+                <div class="flex items-center justify-between flex-wrap gap-3 mb-5 border-b border-white/5 pb-4">
+                    <h3 class="text-lg font-bold text-indigo-200 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question"></i> 互動小問答
+                    </h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-slate-400">得分：<span id="quizScore" class="font-bold text-emerald-400">0</span> / <span id="quizTotal" class="text-indigo-300">0</span></span>
+                        <button onclick="resetQuiz()" class="text-xs bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                            <i class="fa-solid fa-rotate-right"></i> 重來
+                        </button>
+                    </div>
+                </div>
+                <div id="quizContainer" class="flex flex-col gap-5">
+                    <!-- 問答由 JS 動態載入 -->
+                </div>
+                <div id="quizFinish" class="hidden mt-5 text-center bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5">
+                    <i class="fa-solid fa-trophy text-3xl text-amber-400 mb-2"></i>
+                    <p class="text-sm font-semibold text-emerald-200" id="quizFinishText">全部答完囉！</p>
+                </div>
+            </div>
+
+        </section>
+
         <!-- 頁尾 -->
-        <footer class="mt-12 border-t border-white/5 pt-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p>© 2026 經典金曲 KTV 伴唱網頁程式. 本網頁僅供學術與技術展示，影片與音樂版權歸滾石唱片所有。</p>
-            <p>Made with <i class="fa-solid fa-heart text-rose-500 animate-pulse"></i> for Music Lovers</p>
+        <footer class="mt-14 border-t border-white/5 pt-6 text-xs text-slate-500 flex flex-col gap-4">
+            <!-- 出處與致謝 -->
+            <div class="bg-black/20 border border-white/5 rounded-2xl p-5 text-slate-400 leading-relaxed space-y-2">
+                <p class="font-semibold text-slate-300 flex items-center gap-2"><i class="fa-solid fa-circle-info text-indigo-400"></i> 音樂來源與版權標註</p>
+                <p>歌曲：《一支小雨傘》｜原唱：洪榮宏｜作詞：黃敏｜作曲：利根一郎。</p>
+                <p>原曲：日本歌手橋幸夫 1966 年〈雨の中の二人〉（雨中的兩人），利根一郎作曲。</p>
+                <p>收錄專輯：《行船人的愛・一支小雨傘》（1982，光美唱片）。影音內容版權歸滾石唱片／光美唱片及原權利人所有，本頁影片以 YouTube 官方授權嵌入方式播放。</p>
+                <p>故事與趣聞資料整理自：維基百科（洪一峰、洪榮宏條目）、滾石唱片官方資料、中時新聞網等公開報導，僅供教學與懷舊欣賞之用。</p>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-2 text-center">
+                <p>© 2026 經典金曲 KTV 伴唱網頁程式 ｜ 本網頁僅供學術與技術展示，影片與音樂版權歸原權利人所有。</p>
+                <p>網頁設計：<span class="text-indigo-300 font-medium">愛迪樂健康促進團隊</span> ｜ Made with <i class="fa-solid fa-heart text-rose-500 animate-pulse"></i> for Music Lovers</p>
+            </div>
         </footer>
     </div>
 
-    <!-- 彈出視窗 1：全螢幕卡拉OK大字體伴唱模式 (全裝置支援，可滑動防止遮擋，支援影片浮動解鎖播放機制) -->
+    <!-- 彈出視窗 1：全螢幕卡拉OK大字體伴唱模式 -->
     <div id="karaokeModal" class="fixed inset-0 bg-slate-950 z-50 flex flex-col justify-between p-4 sm:p-8 hidden overflow-y-auto select-none">
-        <!-- 粒子雨背景（同主頁但更暗） -->
         <canvas id="karaokeRainCanvas" class="absolute inset-0 pointer-events-none z-0 opacity-40"></canvas>
-
-        <!-- 內容定位包裝 (確保在矮螢幕下能優雅縮排並置中) -->
         <div id="karaokeContentWrapper" class="relative z-10 w-full max-w-5xl mx-auto flex-grow flex flex-col justify-between gap-4 sm:gap-6 min-h-full">
-            
-            <!-- 頂部列：歌名與退出 -->
             <div id="karaokeHeaderBar" class="flex justify-between items-center border-b border-white/5 pb-3">
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-microphone text-rose-500 text-lg sm:text-2xl animate-bounce"></i>
@@ -334,46 +463,24 @@
                         </h2>
                     </div>
                 </div>
-                
                 <div class="flex items-center gap-3 sm:gap-4">
-                    <!-- 時間 -->
                     <span id="karaokeTimeText" class="text-xs sm:text-sm font-mono text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">00:00 / 03:37</span>
-                    <!-- 退出按鈕 -->
                     <button onclick="toggleKaraokeMode(false)" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/5 hover:bg-white/10 hover:text-rose-400 border border-white/10 flex items-center justify-center transition-all duration-300">
                         <i class="fa-solid fa-xmark text-base sm:text-lg"></i>
                     </button>
                 </div>
             </div>
-
-            <!-- 中部：巨型歌詞焦點看板 -->
             <div id="karaokeLyricSection" class="flex-grow flex flex-col justify-center items-center py-2 sm:py-4 text-center gap-3 sm:gap-6 min-h-0">
-                
-                <!-- 上一句 (暗色) -->
-                <div id="karaokePrevLine" class="text-base sm:text-2xl text-slate-500/70 font-semibold max-w-3xl transition-all duration-500 min-h-[1.5rem] px-2">
-                    --
-                </div>
-
-                <!-- 當前句 (高亮巨型) -->
+                <div id="karaokePrevLine" class="text-base sm:text-2xl text-slate-500/70 font-semibold max-w-3xl transition-all duration-500 min-h-[1.5rem] px-2">--</div>
                 <div id="karaokeActiveBox" class="relative py-3 px-6 sm:py-5 sm:px-8 rounded-2xl sm:rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl w-full max-w-3xl min-h-[90px] sm:min-h-[130px] flex flex-col justify-center items-center overflow-hidden">
-                    <!-- 伴奏進度小指示 -->
                     <div class="absolute top-0 inset-x-0 h-1 bg-white/5 overflow-hidden">
                         <div id="karaokeLineProgress" class="h-full bg-gradient-to-r from-indigo-500 to-rose-500 w-0 transition-all duration-300"></div>
                     </div>
-
-                    <div id="karaokeActiveLine" class="text-xl sm:text-4xl md:text-5xl font-extrabold tracking-wider leading-relaxed text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-pink-200 drop-shadow-lg drop-shadow-indigo-500/10 text-center px-4">
-                        一支小雨傘
-                    </div>
+                    <div id="karaokeActiveLine" class="text-xl sm:text-4xl md:text-5xl font-extrabold tracking-wider leading-relaxed text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-pink-200 drop-shadow-lg drop-shadow-indigo-500/10 text-center px-4">一支小雨傘</div>
                 </div>
-
-                <!-- 下一句 (暗色) -->
-                <div id="karaokeNextLine" class="text-base sm:text-2xl text-slate-500/70 font-semibold max-w-3xl transition-all duration-500 min-h-[1.5rem] px-2">
-                    咱二人 做陣攑著一支小雨傘
-                </div>
+                <div id="karaokeNextLine" class="text-base sm:text-2xl text-slate-500/70 font-semibold max-w-3xl transition-all duration-500 min-h-[1.5rem] px-2">咱二人 做陣攑著一支小雨傘</div>
             </div>
-
-            <!-- 底部：大字伴唱播放控制、指示燈與MV縮小切換 -->
             <div id="karaokeFooterBar" class="border-t border-white/5 pt-3 flex flex-col xs:flex-row justify-between items-center gap-3">
-                <!-- 音樂提示/間奏燈 -->
                 <div class="flex items-center gap-2.5">
                     <span class="text-xs text-slate-400 hidden sm:inline">唱詞提示：</span>
                     <div class="flex gap-1.5" id="karaokeSignalDots">
@@ -383,15 +490,11 @@
                     </div>
                     <span id="karaokeStatusText" class="text-xs font-semibold text-indigo-300 ml-1">準備中...</span>
                 </div>
-
-                <!-- 伴唱控制鈕區 -->
                 <div class="flex items-center gap-2">
-                    <!-- 顯示/隱藏浮動MV影片 (防行動裝置無法自動播放之痛點) -->
                     <button onclick="toggleFloatingVideo()" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold flex items-center gap-1.5 border border-white/10">
                         <i class="fa-solid fa-tv text-indigo-400"></i>
                         <span id="pipToggleText">隱藏MV</span>
                     </button>
-
                     <button onclick="controlPlayer('play')" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1">
                         <i class="fa-solid fa-play"></i> 播放
                     </button>
@@ -424,6 +527,7 @@
                 <li><strong class="text-indigo-300">手機打橫優化：</strong>橫向螢幕高度較扁，網頁會自動縮小字體及行距。若仍超出部分，可隨時用手指<strong class="text-rose-400">上下滑動</strong>，決不會被蓋住。</li>
                 <li><strong class="text-indigo-300">歌詞隨點即播：</strong>在主頁歌詞面板上點擊任何一行，即可隨意跳轉至該句音樂點。</li>
                 <li><strong class="text-indigo-300">隱藏浮動MV：</strong>唱熟了不需要看原曲 MV？可以點擊控制台的「隱藏MV」收起小畫面。</li>
+                <li><strong class="text-indigo-300">故事與問答：</strong>往下捲動，可以看到這首歌與洪榮宏的故事、趣聞，還有小小的互動問答可以玩！</li>
             </ul>
             <button onclick="toggleHelpModal(false)" class="mt-6 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm transition">
                 我知道了，開始伴唱！
@@ -464,109 +568,202 @@
             { time: 201.0, text: "🎵 (歌曲尾奏結束)" }
         ];
 
+        // === 互動問答題庫（經查證的正確答案） ===
+        const quizData = [
+            {
+                q: "《一支小雨傘》的旋律其實改編自哪一國的歌曲？",
+                options: ["日本", "韓國", "美國", "完全是台灣原創"],
+                answer: 0,
+                explain: "曲調源自日本歌手橋幸夫 1966 年的〈雨の中の二人〉，由利根一郎作曲，後由黃敏填上台語詞。"
+            },
+            {
+                q: "原唱洪榮宏的父親是哪一位台語歌壇傳奇人物？",
+                options: ["葉啟田", "洪一峰", "文夏", "郭金發"],
+                answer: 1,
+                explain: "洪榮宏是「寶島歌王」洪一峰的長子，出身赫赫有名的音樂世家。"
+            },
+            {
+                q: "洪榮宏大約在幾歲時，靠這首歌一炮而紅、奠定歌壇地位？",
+                options: ["10 歲", "15 歲", "19 歲", "30 歲"],
+                answer: 2,
+                explain: "他 5 歲登台、10 歲灌唱片、13 歲赴日學唱，19 歲以《一支小雨傘》成名。"
+            },
+            {
+                q: "《一支小雨傘》最具記憶點的招牌間奏，是哪一種聲音？",
+                options: ["薩克斯風獨奏", "吹口哨", "電吉他 solo", "鋼琴華彩"],
+                answer: 1,
+                explain: "歌曲中那段輕快的「吹口哨」間奏，是它最讓人印象深刻的招牌橋段之一。"
+            },
+            {
+                q: "這首歌的台語詞，是由下列哪位詞人填寫的？",
+                options: ["葉俊麟", "黃敏", "慎芝", "莊奴"],
+                answer: 1,
+                explain: "台語歌詞由黃敏填寫，把日文原曲的雨中情意化為更貼近台灣生活的畫面。"
+            }
+        ];
+
         // 全域變數定義
-        let player; // YouTube Player 物件
-        let updateInterval; // 計時更新
-        let currentActiveIndex = -1; // 當前唱詞索引
-        let timeOffset = 0.0; // 歌詞偏置校正
-        let currentFontSize = 'md'; // 字型大小：sm, md, lg, xl
-        let isRainActive = true; // 是否開啟雨滴背景
-        let isKaraokeMode = false; // 是否卡拉OK模式
-        let isPipHidden = false; // 是否隱藏浮動影片
+        let player;
+        let updateInterval;
+        let currentActiveIndex = -1;
+        let timeOffset = 0.0;
+        let currentFontSize = 'md';
+        let isRainActive = true;
+        let isKaraokeMode = false;
+        let isPipHidden = false;
+        let quizState = []; // 紀錄每題是否已答對
 
         // === 初始化頁面與歌詞 ===
         document.addEventListener("DOMContentLoaded", () => {
             initLyrics();
             initRainEffect("rainCanvas");
             initRainEffect("karaokeRainCanvas");
+            initQuiz();
         });
 
         // 動態生成歌詞 DOM 節點
         function initLyrics() {
             const container = document.getElementById("lyricsContainer");
             container.innerHTML = "";
-            
             rawLyrics.forEach((lyric, index) => {
                 const lineDiv = document.createElement("div");
                 lineDiv.id = `lyric-line-${index}`;
                 lineDiv.className = `lyric-line px-4 py-3 rounded-xl cursor-pointer text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-3 transition-all duration-300 group`;
                 lineDiv.setAttribute("onclick", `jumpToTime(${lyric.time})`);
-                
-                // 時間標籤
                 const timeSpan = document.createElement("span");
                 timeSpan.className = "text-xs font-mono text-slate-500 group-hover:text-indigo-400 bg-black/20 group-hover:bg-indigo-500/10 border border-white/5 group-hover:border-indigo-500/20 px-2 py-0.5 rounded";
                 timeSpan.innerText = formatTime(lyric.time);
-                
-                // 歌詞文字
                 const textSpan = document.createElement("span");
                 textSpan.id = `lyric-text-${index}`;
                 textSpan.className = "text-base font-medium tracking-wide flex-grow select-none lyric-txt";
                 textSpan.innerText = lyric.text;
-
-                // 間奏特殊標示色
                 if (lyric.text.includes("🎵")) {
                     textSpan.classList.add("text-indigo-400/80", "italic");
                 }
-
-                // 播放小 icon
                 const playIcon = document.createElement("i");
                 playIcon.className = "fa-solid fa-play text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300";
-
                 lineDiv.appendChild(timeSpan);
                 lineDiv.appendChild(textSpan);
                 lineDiv.appendChild(playIcon);
                 container.appendChild(lineDiv);
             });
-
             document.getElementById("lyricCount").innerText = rawLyrics.length;
             applyFontSize();
+        }
+
+        // === 互動問答 ===
+        function initQuiz() {
+            quizState = new Array(quizData.length).fill(false);
+            const container = document.getElementById("quizContainer");
+            container.innerHTML = "";
+            document.getElementById("quizTotal").innerText = quizData.length;
+            document.getElementById("quizFinish").classList.add("hidden");
+
+            quizData.forEach((item, qi) => {
+                const card = document.createElement("div");
+                card.className = "bg-black/20 border border-white/5 rounded-2xl p-4 quiz-pop";
+                card.id = `quiz-card-${qi}`;
+
+                const question = document.createElement("p");
+                question.className = "text-sm font-semibold text-slate-200 mb-3";
+                question.innerHTML = `<span class="text-indigo-300 mr-1">Q${qi + 1}.</span>${item.q}`;
+                card.appendChild(question);
+
+                const optWrap = document.createElement("div");
+                optWrap.className = "grid grid-cols-1 sm:grid-cols-2 gap-2";
+                item.options.forEach((opt, oi) => {
+                    const btn = document.createElement("button");
+                    btn.className = "text-left text-sm bg-white/5 hover:bg-indigo-500/20 border border-white/10 rounded-xl px-3 py-2.5 transition flex items-center gap-2 quiz-opt";
+                    btn.id = `quiz-${qi}-opt-${oi}`;
+                    btn.innerHTML = `<span class="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs flex-shrink-0">${String.fromCharCode(65 + oi)}</span><span>${opt}</span>`;
+                    btn.onclick = () => answerQuiz(qi, oi);
+                    optWrap.appendChild(btn);
+                });
+                card.appendChild(optWrap);
+
+                const explain = document.createElement("div");
+                explain.id = `quiz-explain-${qi}`;
+                explain.className = "hidden mt-3 text-xs rounded-xl px-3 py-2.5";
+                card.appendChild(explain);
+
+                container.appendChild(card);
+            });
+            updateQuizScore();
+        }
+
+        function answerQuiz(qi, oi) {
+            if (quizState[qi]) return; // 已答對則不再作答
+            const item = quizData[qi];
+            const correct = item.answer;
+            const explainEl = document.getElementById(`quiz-explain-${qi}`);
+
+            // 標示選項
+            const chosenBtn = document.getElementById(`quiz-${qi}-opt-${oi}`);
+            if (oi === correct) {
+                chosenBtn.className = "text-left text-sm bg-emerald-500/20 border border-emerald-500/40 text-emerald-100 rounded-xl px-3 py-2.5 transition flex items-center gap-2";
+                chosenBtn.querySelector("span").className = "w-5 h-5 rounded-full bg-emerald-500/40 flex items-center justify-center text-xs flex-shrink-0";
+                quizState[qi] = true;
+                explainEl.className = "mt-3 text-xs rounded-xl px-3 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-200";
+                explainEl.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i>答對了！${item.explain}`;
+                explainEl.classList.remove("hidden");
+                // 答對後鎖定全部選項
+                document.querySelectorAll(`#quiz-card-${qi} .quiz-opt`).forEach(b => b.disabled = true);
+            } else {
+                chosenBtn.className = "text-left text-sm bg-rose-500/20 border border-rose-500/40 text-rose-100 rounded-xl px-3 py-2.5 transition flex items-center gap-2";
+                explainEl.className = "mt-3 text-xs rounded-xl px-3 py-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-200";
+                explainEl.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i>再想想看，換個答案試試！`;
+                explainEl.classList.remove("hidden");
+            }
+            updateQuizScore();
+        }
+
+        function updateQuizScore() {
+            const score = quizState.filter(Boolean).length;
+            document.getElementById("quizScore").innerText = score;
+            if (score === quizData.length) {
+                const finish = document.getElementById("quizFinish");
+                finish.classList.remove("hidden");
+                document.getElementById("quizFinishText").innerText = `太厲害了！${quizData.length} 題全部答對，你是《一支小雨傘》的真愛粉！`;
+            }
+        }
+
+        function resetQuiz() {
+            initQuiz();
+        }
+
+        function scrollToStory() {
+            document.getElementById("storySection").scrollIntoView({ behavior: "smooth" });
         }
 
         // === YouTube IFrame API 載入 ===
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
-                videoId: '5_eXogZgr48', // 影片 ID
-                playerVars: {
-                    'playsinline': 1,
-                    'controls': 1,
-                    'rel': 0,
-                    'modestbranding': 1
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
-                }
+                videoId: '5_eXogZgr48',
+                playerVars: { 'playsinline': 1, 'controls': 1, 'rel': 0, 'modestbranding': 1 },
+                events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
             });
         }
 
-        // 播放器就緒
         function onPlayerReady(event) {
             document.getElementById("playerLoader").classList.add("opacity-0");
-            setTimeout(() => {
-                document.getElementById("playerLoader").classList.add("hidden");
-            }, 500);
+            setTimeout(() => { document.getElementById("playerLoader").classList.add("hidden"); }, 500);
             updateDuration();
         }
 
-        // 播放器狀態改變
         function onPlayerStateChange(event) {
             const discSpinner = document.getElementById("discSpinner");
             const statePulse = document.getElementById("statePulse");
             const stateDot = document.getElementById("stateDot");
             const statusText = document.getElementById("statusText");
-
             if (event.data == YT.PlayerState.PLAYING) {
                 discSpinner.classList.add("animate-[spin_8s_linear_infinite]");
                 stateDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
                 statePulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
                 statusText.innerText = "音樂播放中";
-                
-                // 強制啟動高精準定時更新器
                 startSyncTimer();
             } else {
                 discSpinner.classList.remove("animate-[spin_8s_linear_infinite]");
                 statePulse.className = "hidden";
-                
                 if (event.data == YT.PlayerState.PAUSED) {
                     stateDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
                     statusText.innerText = "已暫停播放";
@@ -577,52 +774,34 @@
                     stateDot.className = "relative inline-flex rounded-full h-2 w-2 bg-slate-500";
                     statusText.innerText = "待命狀態";
                 }
-                
                 stopSyncTimer();
             }
         }
 
-        // === 同步滾動核心邏輯 ===
         function startSyncTimer() {
             if (updateInterval) clearInterval(updateInterval);
-            
-            // 每 100毫秒 密集更新一次，確保時間校正完美且性能優良
             updateInterval = setInterval(() => {
                 if (player && player.getCurrentTime) {
                     try {
                         const currentTime = player.getCurrentTime();
                         syncLyrics(currentTime);
                         updateDuration(currentTime);
-                    } catch (e) {
-                        // 屏蔽部分跨網域小例外
-                    }
+                    } catch (e) {}
                 }
             }, 100);
         }
 
         function stopSyncTimer() {
-            if (updateInterval) {
-                clearInterval(updateInterval);
-                updateInterval = null;
-            }
+            if (updateInterval) { clearInterval(updateInterval); updateInterval = null; }
         }
 
-        // 歌詞滾動高亮核心演算法
         function syncLyrics(time) {
             const adjustedTime = time + timeOffset;
             let activeIndex = -1;
-
-            // 尋找當前應該高亮的歌詞行
             for (let i = 0; i < rawLyrics.length; i++) {
-                if (adjustedTime >= rawLyrics[i].time) {
-                    activeIndex = i;
-                } else {
-                    break;
-                }
+                if (adjustedTime >= rawLyrics[i].time) { activeIndex = i; } else { break; }
             }
-
             if (activeIndex !== -1 && activeIndex !== currentActiveIndex) {
-                // 清除前一行的狀態
                 if (currentActiveIndex !== -1) {
                     const prevRow = document.getElementById(`lyric-line-${currentActiveIndex}`);
                     if (prevRow) {
@@ -631,17 +810,12 @@
                         document.getElementById(`lyric-text-${currentActiveIndex}`).classList.remove("text-indigo-200", "scale-105");
                     }
                 }
-
-                // 設定當前行的狀態
                 const activeRow = document.getElementById(`lyric-line-${activeIndex}`);
                 if (activeRow) {
                     activeRow.classList.add("lyric-active", "bg-indigo-500/10", "border-indigo-500/20");
                     activeRow.classList.remove("text-slate-300");
-                    
                     const textEl = document.getElementById(`lyric-text-${activeIndex}`);
                     textEl.classList.add("text-indigo-200", "scale-105");
-
-                    // 平滑滾動讓當前行置中
                     const container = document.getElementById("lyricsContainer");
                     if (container) {
                         const offsetTop = activeRow.offsetTop;
@@ -649,130 +823,76 @@
                         container.scrollTop = offsetTop - containerHeight / 2 + activeRow.clientHeight / 2;
                     }
                 }
-
                 currentActiveIndex = activeIndex;
-
-                // 更新大字卡拉OK模式內容
                 updateKaraokePanel(activeIndex);
             }
-
-            // 更新卡拉OK唱詞指示燈、唱詞內度進度條
             if (isKaraokeMode && activeIndex !== -1) {
                 updateKaraokeUIFeedback(adjustedTime, activeIndex);
             }
         }
 
-        // === 歌詞點播與播放控制 ===
         function jumpToTime(time) {
             if (player && player.seekTo) {
-                try {
-                    player.seekTo(time, true);
-                    player.playVideo();
-                    startSyncTimer(); // 手動點歌詞立刻啟動計時
-                } catch (e) {
-                    console.log("尋找時間點失敗", e);
-                }
+                try { player.seekTo(time, true); player.playVideo(); startSyncTimer(); }
+                catch (e) { console.log("尋找時間點失敗", e); }
             }
         }
 
         function controlPlayer(action) {
             if (!player) return;
             try {
-                if (action === 'play') {
-                    player.playVideo();
-                    startSyncTimer(); // 播放時即刻激活
-                }
-                if (action === 'pause') {
-                    player.pauseVideo();
-                    stopSyncTimer();
-                }
-            } catch (e) {
-                console.log(e);
-            }
+                if (action === 'play') { player.playVideo(); startSyncTimer(); }
+                if (action === 'pause') { player.pauseVideo(); stopSyncTimer(); }
+            } catch (e) { console.log(e); }
         }
 
-        // 外部微調偏置
         function adjustOffset(amount) {
             timeOffset = parseFloat((timeOffset + amount).toFixed(1));
             document.getElementById("offsetVal").innerText = (timeOffset > 0 ? "+" : "") + timeOffset.toFixed(1) + "s";
-            
-            // 強制歌詞重新比對時間
-            if (player) {
-                try {
-                    syncLyrics(player.getCurrentTime());
-                } catch(e) {}
-            }
+            if (player) { try { syncLyrics(player.getCurrentTime()); } catch(e) {} }
         }
 
         function resetOffset() {
             timeOffset = 0.0;
             document.getElementById("offsetVal").innerText = "0.0s";
-            if (player) {
-                try {
-                    syncLyrics(player.getCurrentTime());
-                } catch(e) {}
-            }
+            if (player) { try { syncLyrics(player.getCurrentTime()); } catch(e) {} }
         }
 
-        // === 全螢幕卡拉OK大字體伴唱模式與子母視窗(PiP)轉換 ===
         function toggleKaraokeMode(enable) {
             isKaraokeMode = enable;
             const modal = document.getElementById("karaokeModal");
             const playerWrapper = document.getElementById("playerWrapper");
-            
             if (enable) {
                 modal.classList.remove("hidden");
-                // 轉換影音框架為右下角浮動視窗 (PiP)
                 playerWrapper.className = "fixed bottom-4 right-4 w-40 sm:w-60 md:w-80 aspect-video z-[60] rounded-2xl border-2 border-indigo-500/50 shadow-2xl overflow-hidden transition-all duration-500 float-player-active" + (isPipHidden ? " hidden" : "");
-                
-                if (currentActiveIndex !== -1) {
-                    updateKaraokePanel(currentActiveIndex);
-                } else {
-                    updateKaraokePanel(0);
-                }
+                if (currentActiveIndex !== -1) { updateKaraokePanel(currentActiveIndex); } else { updateKaraokePanel(0); }
             } else {
                 modal.classList.add("hidden");
-                // 還原影音框架回到主頁左側原處
                 playerWrapper.className = "relative rounded-2xl overflow-hidden aspect-video bg-black/40 border border-white/10 shadow-inner w-full transition-all duration-500";
             }
         }
 
-        // 控制浮動影片的顯示或隱藏 (防遮蓋歌詞，或提供使用者隱藏選擇)
         function toggleFloatingVideo() {
             isPipHidden = !isPipHidden;
             const playerWrapper = document.getElementById("playerWrapper");
             const toggleText = document.getElementById("pipToggleText");
-
-            if (isPipHidden) {
-                playerWrapper.classList.add("hidden");
-                toggleText.innerText = "顯示MV";
-            } else {
-                playerWrapper.classList.remove("hidden");
-                toggleText.innerText = "隱藏MV";
-            }
+            if (isPipHidden) { playerWrapper.classList.add("hidden"); toggleText.innerText = "顯示MV"; }
+            else { playerWrapper.classList.remove("hidden"); toggleText.innerText = "隱藏MV"; }
         }
 
-        // 更新卡拉OK大字體面版內容
         function updateKaraokePanel(index) {
             if (!isKaraokeMode) return;
             if (index < 0 || index >= rawLyrics.length) return;
-
             const prevLine = document.getElementById("karaokePrevLine");
             const activeLine = document.getElementById("karaokeActiveLine");
             const nextLine = document.getElementById("karaokeNextLine");
-
-            // 取得上一句、當前句、下一句歌詞
             const prevText = index > 0 ? rawLyrics[index - 1].text : "--";
             const activeText = rawLyrics[index].text;
             const nextText = index < rawLyrics.length - 1 ? rawLyrics[index + 1].text : "--";
-
             const isInstrumental = activeText.includes("🎵");
-
             prevLine.innerText = prevText;
             activeLine.innerText = activeText;
             nextLine.innerText = nextText;
-
-            // 特殊樣式：若為吹口哨等音樂間奏
             if (isInstrumental) {
                 activeLine.className = "text-xl sm:text-2xl md:text-3xl font-bold tracking-wider text-indigo-400 drop-shadow animate-pulse italic text-center";
                 document.getElementById("karaokeStatusText").innerText = "音樂間奏 吹口哨啦 🎵";
@@ -784,28 +904,20 @@
             }
         }
 
-        // 更新卡拉OK模式的進度條與提示燈
         function updateKaraokeUIFeedback(adjustedTime, index) {
             const currentLine = rawLyrics[index];
             const nextLine = index < rawLyrics.length - 1 ? rawLyrics[index + 1] : null;
-
             if (nextLine) {
                 const lineDuration = nextLine.time - currentLine.time;
                 const lineElapsed = adjustedTime - currentLine.time;
                 const progressPercent = Math.min(Math.max((lineElapsed / lineDuration) * 100, 0), 100);
-
-                // 更新當前行上方的彩色進度條
                 const progressEl = document.getElementById("karaokeLineProgress");
                 if (progressEl) progressEl.style.width = `${progressPercent}%`;
-
-                // 閃爍綠燈倒數提示
                 const remainingTime = nextLine.time - adjustedTime;
                 const l1 = document.getElementById("singLight1");
                 const l2 = document.getElementById("singLight2");
                 const l3 = document.getElementById("singLight3");
-
                 if (!l1 || !l2 || !l3) return;
-
                 if (remainingTime > 0 && remainingTime <= 3) {
                     if (remainingTime <= 1) {
                         l1.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
@@ -831,22 +943,18 @@
             }
         }
 
-        // === 搜尋歌詞 ===
         function searchLyrics() {
             const query = document.getElementById("lyricSearch").value.trim().toLowerCase();
             const lines = document.getElementsByClassName("lyric-line");
             let hasMatches = false;
             let matchCount = 0;
-
             for (let i = 0; i < lines.length; i++) {
                 const textEl = document.getElementById(`lyric-text-${i}`);
                 const lyricText = textEl.innerText.toLowerCase();
-
                 if (lyricText.includes(query)) {
                     lines[i].classList.remove("hidden");
                     hasMatches = true;
                     matchCount++;
-
                     if (query !== "") {
                         const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
                         const originalText = rawLyrics[i].text;
@@ -858,39 +966,26 @@
                     lines[i].classList.add("hidden");
                 }
             }
-
             document.getElementById("lyricCount").innerText = matchCount;
-
             const noResults = document.getElementById("noResults");
-            if (!hasMatches && query !== "") {
-                noResults.classList.remove("hidden");
-            } else {
-                noResults.classList.add("hidden");
-            }
+            if (!hasMatches && query !== "") { noResults.classList.remove("hidden"); }
+            else { noResults.classList.add("hidden"); }
         }
 
         function escapeRegExp(string) {
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
-        // === 播放時間長度 ===
         function updateDuration(currentSecs = 0) {
-            let durationSecs = 217; 
+            let durationSecs = 217;
             if (player && player.getDuration) {
-                try {
-                    const fetchedDuration = player.getDuration();
-                    if (fetchedDuration > 0) durationSecs = fetchedDuration;
-                } catch(e) {}
+                try { const fetchedDuration = player.getDuration(); if (fetchedDuration > 0) durationSecs = fetchedDuration; } catch(e) {}
             }
-
             const currentStr = formatTime(currentSecs);
             const durationStr = formatTime(durationSecs);
             const text = `${currentStr} / ${durationStr}`;
-            
             document.getElementById("durationText").innerText = text;
-            if (isKaraokeMode) {
-                document.getElementById("karaokeTimeText").innerText = text;
-            }
+            if (isKaraokeMode) { document.getElementById("karaokeTimeText").innerText = text; }
         }
 
         function formatTime(seconds) {
@@ -899,18 +994,14 @@
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // 字體大小控制
         function setFontSize(size) {
             currentFontSize = size;
-            
             ['sm', 'md', 'lg', 'xl'].forEach(s => {
                 const btn = document.getElementById(`font-${s}`);
                 btn.className = "px-2.5 py-1 text-xs rounded transition-all text-slate-400 hover:text-white";
             });
-
             const activeBtn = document.getElementById(`font-${size}`);
             activeBtn.className = "px-2.5 py-1 text-xs rounded bg-indigo-600 font-bold transition-all text-white";
-
             applyFontSize();
         }
 
@@ -925,45 +1016,31 @@
             }
         }
 
-        // 主題切換
         function changeTheme(themeName) {
             const body = document.body;
             body.className = "text-slate-100 min-h-screen transition-all duration-1000 overflow-x-hidden relative font-sans selection:bg-indigo-500 selection:text-white";
             body.classList.add(`theme-${themeName}`);
         }
 
-        // 操作說明 Modal
         function toggleHelpModal(show) {
             const modal = document.getElementById("helpModal");
-            if (show) modal.classList.remove("hidden");
-            else modal.classList.add("hidden");
+            if (show) modal.classList.remove("hidden"); else modal.classList.add("hidden");
         }
 
-        // === 雨滴 Canvas 動畫背景 ===
         let activeRainAnimations = [];
 
         function initRainEffect(canvasId) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
-
             const ctx = canvas.getContext('2d');
             let animationFrameId;
-
-            function resizeCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
+            function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
-
             const particles = [];
-            const maxParticles = 80; // 適度減少粒子數，確保橫向滑動與舊款手機不卡頓
-
+            const maxParticles = 80;
             class RainDrop {
-                constructor() {
-                    this.reset();
-                }
-
+                constructor() { this.reset(); }
                 reset() {
                     this.x = Math.random() * canvas.width;
                     this.y = Math.random() * -canvas.height;
@@ -972,16 +1049,10 @@
                     this.opacity = Math.random() * 0.25 + 0.08;
                     this.weight = Math.random() * 1.2 + 0.4;
                 }
-
                 update() {
-                    this.y += this.speed;
-                    this.x += 0.8;
-
-                    if (this.y > canvas.height) {
-                        this.reset();
-                    }
+                    this.y += this.speed; this.x += 0.8;
+                    if (this.y > canvas.height) { this.reset(); }
                 }
-
                 draw() {
                     ctx.beginPath();
                     ctx.strokeStyle = `rgba(156, 163, 175, ${this.opacity})`;
@@ -991,28 +1062,13 @@
                     ctx.stroke();
                 }
             }
-
-            for (let i = 0; i < maxParticles; i++) {
-                particles.push(new RainDrop());
-            }
-
+            for (let i = 0; i < maxParticles; i++) { particles.push(new RainDrop()); }
             function animate() {
-                if (!isRainActive) {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    animationFrameId = requestAnimationFrame(animate);
-                    return;
-                }
-
+                if (!isRainActive) { ctx.clearRect(0, 0, canvas.width, canvas.height); animationFrameId = requestAnimationFrame(animate); return; }
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                particles.forEach(p => {
-                    p.update();
-                    p.draw();
-                });
-
+                particles.forEach(p => { p.update(); p.draw(); });
                 animationFrameId = requestAnimationFrame(animate);
             }
-
             animate();
             activeRainAnimations.push({ id: canvasId, frameId: animationFrameId });
         }
@@ -1022,7 +1078,6 @@
             const btn = document.getElementById("rainToggleBtn");
             const canvas1 = document.getElementById("rainCanvas");
             const canvas2 = document.getElementById("karaokeRainCanvas");
-
             if (isRainActive) {
                 btn.innerHTML = `<i class="fa-solid fa-cloud-showers-heavy text-indigo-400"></i> <span>雨效: 開</span>`;
                 if (canvas1) canvas1.style.display = "block";
