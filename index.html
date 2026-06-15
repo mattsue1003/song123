@@ -78,6 +78,55 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
+        /* 可點擊關鍵字（跳 Google 搜尋） */
+        .kw, .kw-pink {
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            padding: 0 2px;
+            font-size: inherit;
+            font-family: inherit;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-underline-offset: 4px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .kw {
+            color: #a5b4fc;
+            text-decoration-color: rgba(165, 180, 252, 0.5);
+        }
+        .kw-pink {
+            color: #f9a8d4;
+            text-decoration-color: rgba(249, 168, 212, 0.5);
+        }
+        .kw:hover, .kw:focus {
+            color: #fff;
+            background: rgba(99, 102, 241, 0.25);
+            border-radius: 6px;
+            text-decoration-color: #fff;
+        }
+        .kw-pink:hover, .kw-pink:focus {
+            color: #fff;
+            background: rgba(236, 72, 153, 0.25);
+            border-radius: 6px;
+            text-decoration-color: #fff;
+        }
+        /* 關鍵字 hover 時出現的小放大鏡提示 */
+        .kw::after, .kw-pink::after {
+            content: "\f002"; /* Font Awesome 放大鏡 */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 0.6em;
+            margin-left: 3px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .kw:hover::after, .kw-pink:hover::after {
+            opacity: 0.8;
+        }
+
         /* === 專為手機打橫/矮螢幕 (Landscape) 設計的極限優化樣式 === */
         @media (max-height: 550px) {
             #karaokeModal {
@@ -188,12 +237,17 @@
                 <div class="bg-white/5 border border-white/10 p-5 rounded-3xl backdrop-blur-md shadow-glass-sm relative">
                     <div class="flex gap-4">
                         <!-- 虛擬唱片/封面 -->
-                        <div class="relative group w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
+                        <div class="relative group w-20 h-20 md:w-24 md:h-24 flex-shrink-0 cursor-pointer" onclick="searchCoverImage()" title="點擊圖片，Google 搜尋這張專輯封面的相關資訊">
                             <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
                             <div class="relative bg-black rounded-2xl overflow-hidden w-full h-full border border-white/10 flex items-center justify-center">
                                 <img src="https://i.ytimg.com/vi/5_eXogZgr48/maxresdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=500&auto=format&fit=crop&q=60'" class="w-full h-full object-cover opacity-85" alt="一支小雨傘封面">
-                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:opacity-0 transition-opacity duration-300">
                                     <i class="fa-solid fa-compact-disc text-white/80 text-2xl md:text-3xl animate-[spin_8s_linear_infinite]" id="discSpinner"></i>
+                                </div>
+                                <!-- hover 互動提示遮罩 -->
+                                <div class="absolute inset-0 bg-indigo-900/70 backdrop-blur-sm flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <i class="fa-solid fa-magnifying-glass text-white text-lg md:text-xl"></i>
+                                    <span class="text-[10px] md:text-xs text-white font-semibold text-center leading-tight px-1">點圖搜尋</span>
                                 </div>
                             </div>
                         </div>
@@ -330,34 +384,35 @@
 
             <!-- 區塊標題 -->
             <div class="text-center">
-                <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                     <i class="fa-solid fa-feather-pointed"></i> 雨傘下的故事
                 </span>
-                <h2 class="text-2xl md:text-3xl font-black mt-3 bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-pink-200">
+                <h2 class="text-3xl md:text-4xl font-black mt-3 bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-pink-200">
                     這首歌，藏著哪些故事？
                 </h2>
-                <p class="text-sm text-slate-400 mt-2">一首唱了四十多年的台語金曲，背後是父子、是日本、也是一整個時代</p>
+                <p class="text-base md:text-lg text-slate-300 mt-3">一首唱了四十多年的台語金曲，背後是父子、是日本、也是一整個時代</p>
+                <p class="text-sm text-indigo-300/80 mt-2"><i class="fa-solid fa-hand-pointer mr-1"></i>提示：內文中<span class="underline decoration-dotted">有底線的關鍵字</span>可點擊，立即 Google 搜尋更多資料</p>
             </div>
 
             <!-- 故事與趣事：雙欄卡片 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 <!-- 左卡：歌曲身世 -->
-                <div class="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md shadow-glass-sm">
-                    <h3 class="text-lg font-bold text-indigo-200 flex items-center gap-2 mb-4">
+                <div class="bg-white/5 border border-white/10 p-6 md:p-7 rounded-3xl backdrop-blur-md shadow-glass-sm">
+                    <h3 class="text-xl md:text-2xl font-bold text-indigo-200 flex items-center gap-2 mb-4">
                         <i class="fa-solid fa-record-vinyl"></i> 歌曲的身世
                     </h3>
-                    <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                    <div class="space-y-4 text-base md:text-lg text-slate-200 leading-relaxed md:leading-loose">
                         <p>
-                            《一支小雨傘》其實是一首「跨海而來」的旋律。它的曲調源自日本歌手<span class="text-indigo-300 font-semibold">橋幸夫</span>在 1966 年發行的〈雨の中の二人〉（雨中的兩人），作曲者正是<span class="text-indigo-300 font-semibold">利根一郎</span>。
+                            《一支小雨傘》其實是一首「跨海而來」的旋律。它的曲調源自日本歌手<button onclick="gs('橋幸夫 歌手')" class="kw">橋幸夫</button>在 1966 年發行的〈雨の中の二人〉（雨中的兩人），作曲者正是<button onclick="gs('利根一郎 作曲家')" class="kw">利根一郎</button>。
                         </p>
                         <p>
-                            後來由台灣詞人<span class="text-indigo-300 font-semibold">黃敏</span>重新填上台語歌詞，把日文原曲那份「雨中相依」的情意，化成更貼近台灣人生活的畫面——兩人撐著一支小雨傘，雨越大，越是互相照顧。
+                            後來由台灣詞人<button onclick="gs('黃敏 台語歌 作詞')" class="kw">黃敏</button>重新填上台語歌詞，把日文原曲那份「雨中相依」的情意，化成更貼近台灣人生活的畫面——兩人撐著一支小雨傘，雨越大，越是互相照顧。
                         </p>
                         <p>
-                            1982 年，這首歌收錄在洪榮宏的專輯《行船人的愛・一支小雨傘》（光美唱片）中正式發行，從此傳唱全台，成為婚宴、KTV、廟口晚會永遠的點唱經典。
+                            1982 年，這首歌收錄在洪榮宏的專輯<button onclick="gs('行船人的愛 一支小雨傘 專輯')" class="kw">《行船人的愛・一支小雨傘》</button>（光美唱片）中正式發行，從此傳唱全台，成為婚宴、KTV、廟口晚會永遠的點唱經典。
                         </p>
-                        <div class="bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-slate-400">
+                        <div class="bg-black/20 border border-white/5 rounded-xl p-4 text-sm md:text-base text-slate-300">
                             <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>
                             小知識：那段令人印象深刻的「吹口哨」間奏，正是這首歌最有記憶點的招牌橋段之一。
                         </div>
@@ -365,21 +420,21 @@
                 </div>
 
                 <!-- 右卡：原唱洪榮宏 -->
-                <div class="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md shadow-glass-sm">
-                    <h3 class="text-lg font-bold text-pink-200 flex items-center gap-2 mb-4">
+                <div class="bg-white/5 border border-white/10 p-6 md:p-7 rounded-3xl backdrop-blur-md shadow-glass-sm">
+                    <h3 class="text-xl md:text-2xl font-bold text-pink-200 flex items-center gap-2 mb-4">
                         <i class="fa-solid fa-microphone-lines"></i> 原唱：洪榮宏的故事
                     </h3>
-                    <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                    <div class="space-y-4 text-base md:text-lg text-slate-200 leading-relaxed md:leading-loose">
                         <p>
-                            洪榮宏出身台灣最傳奇的音樂世家——他是「寶島歌王」<span class="text-pink-300 font-semibold">洪一峰</span>的長子。父親是〈淡水暮色〉〈舊情綿綿〉〈思慕的人〉的創作者，弟弟洪敬堯、洪榮良也都在樂壇與藝術圈發光。
+                            洪榮宏出身台灣最傳奇的音樂世家——他是「寶島歌王」<button onclick="gs('洪一峰 寶島歌王')" class="kw-pink">洪一峰</button>的長子。父親是〈<button onclick="gs('淡水暮色 洪一峰')" class="kw-pink">淡水暮色</button>〉〈<button onclick="gs('舊情綿綿 洪一峰')" class="kw-pink">舊情綿綿</button>〉〈<button onclick="gs('思慕的人 洪一峰')" class="kw-pink">思慕的人</button>〉的創作者，弟弟<button onclick="gs('洪敬堯 音樂製作人')" class="kw-pink">洪敬堯</button>、<button onclick="gs('洪榮良 畫家')" class="kw-pink">洪榮良</button>也都在樂壇與藝術圈發光。
                         </p>
                         <p>
-                            他從 <span class="text-pink-300 font-semibold">5 歲</span>就跟著父親登台、<span class="text-pink-300 font-semibold">10 歲</span>灌錄第一張唱片《孤兒淚》、<span class="text-pink-300 font-semibold">13 歲</span>就被送到日本學唱歌。一直到 <span class="text-pink-300 font-semibold">19 歲</span>，靠著一首《一支小雨傘》紅遍全台，正式奠定他的歌壇地位。
+                            他從 <span class="text-pink-300 font-semibold">5 歲</span>就跟著父親登台、<span class="text-pink-300 font-semibold">10 歲</span>灌錄第一張唱片《孤兒淚》、<span class="text-pink-300 font-semibold">13 歲</span>就被送到日本學唱歌。一直到 <span class="text-pink-300 font-semibold">19 歲</span>，靠著一首<button onclick="gs('洪榮宏 一支小雨傘')" class="kw-pink">《一支小雨傘》</button>紅遍全台，正式奠定他的歌壇地位。
                         </p>
                         <p>
-                            他渾厚又帶磁性的嗓音，被譽為「開創台語歌曲優質化的先河」，是 1980 年代台語歌走向精緻化的重要推手，曾多次拿下金曲獎肯定。
+                            他渾厚又帶磁性的嗓音，被譽為「開創台語歌曲優質化的先河」，是 1980 年代台語歌走向精緻化的重要推手，曾多次拿下<button onclick="gs('洪榮宏 金曲獎')" class="kw-pink">金曲獎</button>肯定。
                         </p>
-                        <div class="bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-slate-400">
+                        <div class="bg-black/20 border border-white/5 rounded-xl p-4 text-sm md:text-base text-slate-300">
                             <i class="fa-solid fa-face-grin-squint text-amber-400 mr-1"></i>
                             趣聞：洪榮宏受訪曾笑說，父親洪一峰對他的訓練嚴得像「軍事教育」——連雙眼皮不夠深，都被爸爸用「蛋白」土法把眼皮黏出摺痕，久了竟然真的定型！
                         </div>
@@ -388,35 +443,35 @@
             </div>
 
             <!-- 趣味冷知識橫幅 -->
-            <div class="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-white/10 rounded-3xl p-6 backdrop-blur-md">
-                <h3 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+            <div class="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-white/10 rounded-3xl p-6 md:p-7 backdrop-blur-md">
+                <h3 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2 mb-5">
                     <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> 三個你可能不知道的小趣事
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
-                        <div class="text-2xl mb-2">🇯🇵➡️🇹🇼</div>
-                        <p class="text-slate-300">很多人以為它是「純台灣味」老歌，其實旋律是道地的日本演歌改編，是那個年代台日音樂交流的縮影。</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-base md:text-lg">
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-5">
+                        <div class="text-3xl mb-2">🇯🇵➡️🇹🇼</div>
+                        <p class="text-slate-200 leading-relaxed">很多人以為它是「純台灣味」老歌，其實旋律是道地的<button onclick="gs('日本演歌 台語歌 改編')" class="kw">日本演歌改編</button>，是那個年代台日音樂交流的縮影。</p>
                     </div>
-                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
-                        <div class="text-2xl mb-2">🎤</div>
-                        <p class="text-slate-300">這首歌是無數人的「人生第一首台語對唱歌」，男女合唱版本傳唱度極高，KTV 點播榜上的常勝軍。</p>
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-5">
+                        <div class="text-3xl mb-2">🎤</div>
+                        <p class="text-slate-200 leading-relaxed">這首歌是無數人的「人生第一首台語對唱歌」，男女合唱版本傳唱度極高，KTV 點播榜上的常勝軍。</p>
                     </div>
-                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
-                        <div class="text-2xl mb-2">👨‍👦</div>
-                        <p class="text-slate-300">洪家是不折不扣的「音樂家族」：父親洪一峰、長子洪榮宏、次子洪敬堯、三子洪榮良，三代人撐起台語歌謠一片天。</p>
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-5">
+                        <div class="text-3xl mb-2">👨‍👦</div>
+                        <p class="text-slate-200 leading-relaxed">洪家是不折不扣的<button onclick="gs('洪一峰 洪榮宏 音樂家族')" class="kw">音樂家族</button>：父親洪一峰、長子洪榮宏、次子洪敬堯、三子洪榮良，三代人撐起台語歌謠一片天。</p>
                     </div>
                 </div>
             </div>
 
             <!-- 互動問答區 -->
-            <div class="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-md shadow-glass-sm">
+            <div class="bg-white/5 border border-white/10 p-6 md:p-7 rounded-3xl backdrop-blur-md shadow-glass-sm">
                 <div class="flex items-center justify-between flex-wrap gap-3 mb-5 border-b border-white/5 pb-4">
-                    <h3 class="text-lg font-bold text-indigo-200 flex items-center gap-2">
+                    <h3 class="text-xl md:text-2xl font-bold text-indigo-200 flex items-center gap-2">
                         <i class="fa-solid fa-circle-question"></i> 互動小問答
                     </h3>
                     <div class="flex items-center gap-3">
-                        <span class="text-xs text-slate-400">得分：<span id="quizScore" class="font-bold text-emerald-400">0</span> / <span id="quizTotal" class="text-indigo-300">0</span></span>
-                        <button onclick="resetQuiz()" class="text-xs bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                        <span class="text-sm md:text-base text-slate-300">得分：<span id="quizScore" class="font-bold text-emerald-400">0</span> / <span id="quizTotal" class="text-indigo-300">0</span></span>
+                        <button onclick="resetQuiz()" class="text-sm bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
                             <i class="fa-solid fa-rotate-right"></i> 重來
                         </button>
                     </div>
@@ -426,7 +481,7 @@
                 </div>
                 <div id="quizFinish" class="hidden mt-5 text-center bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5">
                     <i class="fa-solid fa-trophy text-3xl text-amber-400 mb-2"></i>
-                    <p class="text-sm font-semibold text-emerald-200" id="quizFinishText">全部答完囉！</p>
+                    <p class="text-base md:text-lg font-semibold text-emerald-200" id="quizFinishText">全部答完囉！</p>
                 </div>
             </div>
 
@@ -490,22 +545,15 @@
                     </div>
                     <span id="karaokeStatusText" class="text-xs font-semibold text-indigo-300 ml-1">準備中...</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleFloatingVideo()" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold flex items-center gap-1.5 border border-white/10">
-                        <i class="fa-solid fa-tv text-indigo-400"></i>
-                        <span id="pipToggleText">隱藏MV</span>
+                <div class="flex items-center gap-2.5">
+                    <!-- 播放/暫停 二合一主控鈕（手機友善大尺寸） -->
+                    <button onclick="togglePlayPause()" id="karaokePlayToggle" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition">
+                        <i class="fa-solid fa-play" id="karaokePlayIcon"></i>
+                        <span id="karaokePlayLabel">播放</span>
                     </button>
-                    <button onclick="controlPlayer('play')" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-play"></i> 播放
-                    </button>
-                    <button onclick="controlPlayer('pause')" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-pause"></i> 暫停
-                    </button>
-                    <button onclick="adjustOffset(-0.1)" class="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-slate-300" title="提前0.1秒">
-                        <i class="fa-solid fa-backward"></i>
-                    </button>
-                    <button onclick="adjustOffset(0.1)" class="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-slate-300" title="延後0.1秒">
-                        <i class="fa-solid fa-forward"></i>
+                    <!-- 隱藏/顯示 MV（次要鈕，僅 icon 省空間，手機也看得懂） -->
+                    <button onclick="toggleFloatingVideo()" id="karaokePipBtn" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center border border-white/10 transition" title="隱藏/顯示 MV">
+                        <i class="fa-solid fa-tv text-indigo-400" id="pipToggleIcon"></i>
                     </button>
                 </div>
             </div>
@@ -574,31 +622,36 @@
                 q: "《一支小雨傘》的旋律其實改編自哪一國的歌曲？",
                 options: ["日本", "韓國", "美國", "完全是台灣原創"],
                 answer: 0,
-                explain: "曲調源自日本歌手橋幸夫 1966 年的〈雨の中の二人〉，由利根一郎作曲，後由黃敏填上台語詞。"
+                explain: "曲調源自日本歌手橋幸夫 1966 年的〈雨の中の二人〉，由利根一郎作曲，後由黃敏填上台語詞。",
+                kw: "雨の中の二人 橋幸夫"
             },
             {
                 q: "原唱洪榮宏的父親是哪一位台語歌壇傳奇人物？",
                 options: ["葉啟田", "洪一峰", "文夏", "郭金發"],
                 answer: 1,
-                explain: "洪榮宏是「寶島歌王」洪一峰的長子，出身赫赫有名的音樂世家。"
+                explain: "洪榮宏是「寶島歌王」洪一峰的長子，出身赫赫有名的音樂世家。",
+                kw: "洪一峰 寶島歌王"
             },
             {
                 q: "洪榮宏大約在幾歲時，靠這首歌一炮而紅、奠定歌壇地位？",
                 options: ["10 歲", "15 歲", "19 歲", "30 歲"],
                 answer: 2,
-                explain: "他 5 歲登台、10 歲灌唱片、13 歲赴日學唱，19 歲以《一支小雨傘》成名。"
+                explain: "他 5 歲登台、10 歲灌唱片、13 歲赴日學唱，19 歲以《一支小雨傘》成名。",
+                kw: "洪榮宏 一支小雨傘 成名"
             },
             {
                 q: "《一支小雨傘》最具記憶點的招牌間奏，是哪一種聲音？",
                 options: ["薩克斯風獨奏", "吹口哨", "電吉他 solo", "鋼琴華彩"],
                 answer: 1,
-                explain: "歌曲中那段輕快的「吹口哨」間奏，是它最讓人印象深刻的招牌橋段之一。"
+                explain: "歌曲中那段輕快的「吹口哨」間奏，是它最讓人印象深刻的招牌橋段之一。",
+                kw: "一支小雨傘 口哨 間奏"
             },
             {
                 q: "這首歌的台語詞，是由下列哪位詞人填寫的？",
                 options: ["葉俊麟", "黃敏", "慎芝", "莊奴"],
                 answer: 1,
-                explain: "台語歌詞由黃敏填寫，把日文原曲的雨中情意化為更貼近台灣生活的畫面。"
+                explain: "台語歌詞由黃敏填寫，把日文原曲的雨中情意化為更貼近台灣生活的畫面。",
+                kw: "黃敏 台語歌 作詞家"
             }
         ];
 
@@ -661,21 +714,21 @@
 
             quizData.forEach((item, qi) => {
                 const card = document.createElement("div");
-                card.className = "bg-black/20 border border-white/5 rounded-2xl p-4 quiz-pop";
+                card.className = "bg-black/20 border border-white/5 rounded-2xl p-5 quiz-pop";
                 card.id = `quiz-card-${qi}`;
 
                 const question = document.createElement("p");
-                question.className = "text-sm font-semibold text-slate-200 mb-3";
+                question.className = "text-base md:text-lg font-semibold text-slate-100 mb-4 leading-relaxed";
                 question.innerHTML = `<span class="text-indigo-300 mr-1">Q${qi + 1}.</span>${item.q}`;
                 card.appendChild(question);
 
                 const optWrap = document.createElement("div");
-                optWrap.className = "grid grid-cols-1 sm:grid-cols-2 gap-2";
+                optWrap.className = "grid grid-cols-1 sm:grid-cols-2 gap-2.5";
                 item.options.forEach((opt, oi) => {
                     const btn = document.createElement("button");
-                    btn.className = "text-left text-sm bg-white/5 hover:bg-indigo-500/20 border border-white/10 rounded-xl px-3 py-2.5 transition flex items-center gap-2 quiz-opt";
+                    btn.className = "text-left text-base bg-white/5 hover:bg-indigo-500/20 border border-white/10 rounded-xl px-4 py-3 transition flex items-center gap-2.5 quiz-opt";
                     btn.id = `quiz-${qi}-opt-${oi}`;
-                    btn.innerHTML = `<span class="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs flex-shrink-0">${String.fromCharCode(65 + oi)}</span><span>${opt}</span>`;
+                    btn.innerHTML = `<span class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-sm flex-shrink-0">${String.fromCharCode(65 + oi)}</span><span>${opt}</span>`;
                     btn.onclick = () => answerQuiz(qi, oi);
                     optWrap.appendChild(btn);
                 });
@@ -683,7 +736,7 @@
 
                 const explain = document.createElement("div");
                 explain.id = `quiz-explain-${qi}`;
-                explain.className = "hidden mt-3 text-xs rounded-xl px-3 py-2.5";
+                explain.className = "hidden mt-3 text-sm md:text-base rounded-xl px-4 py-3";
                 card.appendChild(explain);
 
                 container.appendChild(card);
@@ -700,17 +753,18 @@
             // 標示選項
             const chosenBtn = document.getElementById(`quiz-${qi}-opt-${oi}`);
             if (oi === correct) {
-                chosenBtn.className = "text-left text-sm bg-emerald-500/20 border border-emerald-500/40 text-emerald-100 rounded-xl px-3 py-2.5 transition flex items-center gap-2";
-                chosenBtn.querySelector("span").className = "w-5 h-5 rounded-full bg-emerald-500/40 flex items-center justify-center text-xs flex-shrink-0";
+                chosenBtn.className = "text-left text-base bg-emerald-500/20 border border-emerald-500/40 text-emerald-100 rounded-xl px-4 py-3 transition flex items-center gap-2.5";
+                chosenBtn.querySelector("span").className = "w-6 h-6 rounded-full bg-emerald-500/40 flex items-center justify-center text-sm flex-shrink-0";
                 quizState[qi] = true;
-                explainEl.className = "mt-3 text-xs rounded-xl px-3 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-200";
-                explainEl.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i>答對了！${item.explain}`;
+                explainEl.className = "mt-3 text-sm md:text-base rounded-xl px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 leading-relaxed";
+                explainEl.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i>答對了！${item.explain}` +
+                    (item.kw ? ` <button onclick="gs('${item.kw}')" class="inline-flex items-center gap-1 ml-1 mt-1 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition"><i class="fa-brands fa-google"></i> 搜尋更多</button>` : "");
                 explainEl.classList.remove("hidden");
                 // 答對後鎖定全部選項
                 document.querySelectorAll(`#quiz-card-${qi} .quiz-opt`).forEach(b => b.disabled = true);
             } else {
-                chosenBtn.className = "text-left text-sm bg-rose-500/20 border border-rose-500/40 text-rose-100 rounded-xl px-3 py-2.5 transition flex items-center gap-2";
-                explainEl.className = "mt-3 text-xs rounded-xl px-3 py-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-200";
+                chosenBtn.className = "text-left text-base bg-rose-500/20 border border-rose-500/40 text-rose-100 rounded-xl px-4 py-3 transition flex items-center gap-2.5";
+                explainEl.className = "mt-3 text-sm md:text-base rounded-xl px-4 py-3 bg-rose-500/10 border border-rose-500/20 text-rose-200";
                 explainEl.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1"></i>再想想看，換個答案試試！`;
                 explainEl.classList.remove("hidden");
             }
@@ -733,6 +787,17 @@
 
         function scrollToStory() {
             document.getElementById("storySection").scrollIntoView({ behavior: "smooth" });
+        }
+
+        // 點擊關鍵字 → 開新分頁 Google 搜尋
+        function gs(keyword) {
+            const url = "https://www.google.com/search?q=" + encodeURIComponent(keyword);
+            window.open(url, "_blank", "noopener");
+        }
+
+        // 點擊封面圖 → Google 搜尋該圖相關資訊
+        function searchCoverImage() {
+            gs("一支小雨傘 洪榮宏 專輯 行船人的愛");
         }
 
         // === YouTube IFrame API 載入 ===
@@ -760,10 +825,12 @@
                 stateDot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
                 statePulse.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
                 statusText.innerText = "音樂播放中";
+                updatePlayToggleUI(true);
                 startSyncTimer();
             } else {
                 discSpinner.classList.remove("animate-[spin_8s_linear_infinite]");
                 statePulse.className = "hidden";
+                updatePlayToggleUI(false);
                 if (event.data == YT.PlayerState.PAUSED) {
                     stateDot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
                     statusText.innerText = "已暫停播放";
@@ -846,6 +913,31 @@
             } catch (e) { console.log(e); }
         }
 
+        // 播放/暫停 二合一切換（依當前播放狀態決定動作）
+        function togglePlayPause() {
+            if (!player || !player.getPlayerState) { controlPlayer('play'); return; }
+            try {
+                const state = player.getPlayerState();
+                // 1 = 播放中 → 暫停；其餘 → 播放
+                if (state === YT.PlayerState.PLAYING) { controlPlayer('pause'); }
+                else { controlPlayer('play'); }
+            } catch (e) { controlPlayer('play'); }
+        }
+
+        // 依播放狀態同步底部主控鈕的圖示與文字
+        function updatePlayToggleUI(isPlaying) {
+            const icon = document.getElementById("karaokePlayIcon");
+            const label = document.getElementById("karaokePlayLabel");
+            if (!icon || !label) return;
+            if (isPlaying) {
+                icon.className = "fa-solid fa-pause";
+                label.innerText = "暫停";
+            } else {
+                icon.className = "fa-solid fa-play";
+                label.innerText = "播放";
+            }
+        }
+
         function adjustOffset(amount) {
             timeOffset = parseFloat((timeOffset + amount).toFixed(1));
             document.getElementById("offsetVal").innerText = (timeOffset > 0 ? "+" : "") + timeOffset.toFixed(1) + "s";
@@ -875,9 +967,17 @@
         function toggleFloatingVideo() {
             isPipHidden = !isPipHidden;
             const playerWrapper = document.getElementById("playerWrapper");
-            const toggleText = document.getElementById("pipToggleText");
-            if (isPipHidden) { playerWrapper.classList.add("hidden"); toggleText.innerText = "顯示MV"; }
-            else { playerWrapper.classList.remove("hidden"); toggleText.innerText = "隱藏MV"; }
+            const icon = document.getElementById("pipToggleIcon");
+            const btn = document.getElementById("karaokePipBtn");
+            if (isPipHidden) {
+                playerWrapper.classList.add("hidden");
+                if (icon) icon.className = "fa-solid fa-tv text-slate-500";
+                if (btn) btn.title = "顯示 MV";
+            } else {
+                playerWrapper.classList.remove("hidden");
+                if (icon) icon.className = "fa-solid fa-tv text-indigo-400";
+                if (btn) btn.title = "隱藏 MV";
+            }
         }
 
         function updateKaraokePanel(index) {
